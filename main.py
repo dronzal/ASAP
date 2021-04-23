@@ -2,7 +2,7 @@ from tools import speechToText as STT
 from tools.bgmask import bg_mask as BGM
 from tools.vision_mood_detection import mood_detection as MD
 from tools import videoTools
-from tools import gesture_detection as GD
+from tools.gesture import gesture_detection as GD
 from tools import virtualDevice as VD
 import numpy as np
 import threading
