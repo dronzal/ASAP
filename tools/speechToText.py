@@ -21,7 +21,6 @@ To install using pip:
     pip install termcolor
 """
 
-
 import re
 import sys
 import time
@@ -34,17 +33,16 @@ import keyboard
 from datetime import datetime
 
 import os
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="D:/asap-309508-7398a8c4473f.json"
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "D:/asap-309508-7398a8c4473f.json"
 
 # Audio recording parameters
 STREAMING_LIMIT = 240000  # 4 minutes
 SAMPLE_RATE = 16000
 CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 
-
 command_mode = False
 do_transcript = False
-
 
 
 def get_current_time():
@@ -56,7 +54,7 @@ def get_current_time():
 class ResumableMicrophoneStream:
     """Opens a recording stream as a generator yielding the audio chunks."""
 
-    def __init__(self, rate, chunk_size):
+    def __init__(self, rate=SAMPLE_RATE, chunk_size=CHUNK_SIZE):
         self._rate = rate
         self.chunk_size = chunk_size
         self._num_channels = 1
@@ -163,154 +161,152 @@ class ResumableMicrophoneStream:
             yield b"".join(data)
 
 
-def listen_print_loop(responses, stream):
-    """Iterates through server responses and prints them.
-    The responses passed is a generator that will block until a response
-    is provided by the server.
-    Each response may contain multiple results, and each result may contain
-    multiple alternatives; for details, see https://goo.gl/tjCPAU.  Here we
-    print only the transcription for the top alternative of the top result.
-    In this case, responses are provided for interim results as well. If the
-    response is an interim one, print a line feed at the end of it, to allow
-    the next result to overwrite it, until the response is a final one. For the
-    final one, print a newline to preserve the finalized transcription.
-    """
-    global command_mode
-    global do_transcript
-    for response in responses:
+class SpeechToText:
 
-        if get_current_time() - stream.start_time > STREAMING_LIMIT:
-            stream.start_time = get_current_time()
-            break
+    def __init__(self, rate=SAMPLE_RATE, chunk=CHUNK_SIZE, language_code="en-UK"):
+        self.bucket = None
+        self.rate = rate
+        self.chunk = chunk
+        self.language_code = language_code
+        self.started = False
 
-        if not response.results:
-            continue
+    def listen_print_loop(self, responses, stream):
 
-        result = response.results[0]
+        """Iterates through server responses and prints them.
+        The responses passed is a generator that will block until a response
+        is provided by the server.
+        Each response may contain multiple results, and each result may contain
+        multiple alternatives; for details, see https://goo.gl/tjCPAU.  Here we
+        print only the transcription for the top alternative of the top result.
+        In this case, responses are provided for interim results as well. If the
+        response is an interim one, print a line feed at the end of it, to allow
+        the next result to overwrite it, until the response is a final one. For the
+        final one, print a newline to preserve the finalized transcription.
+        """
+        global command_mode
+        global do_transcript
+        for response in responses:
 
-        if not result.alternatives:
-            continue
+            if get_current_time() - stream.start_time > STREAMING_LIMIT:
+                stream.start_time = get_current_time()
+                break
 
-        transcript = result.alternatives[0].transcript
+            if not response.results:
+                continue
 
-        result_seconds = 0
-        result_micros = 0
+            result = response.results[0]
 
-        if result.result_end_time.seconds:
-            result_seconds = result.result_end_time.seconds
+            if not result.alternatives:
+                continue
 
-        if result.result_end_time.microseconds:
-            result_micros = result.result_end_time.microseconds
+            transcript = result.alternatives[0].transcript
 
-        stream.result_end_time = int((result_seconds * 1000) + (result_micros / 1000))
+            result_seconds = 0
+            result_micros = 0
 
-        dateTimeObj = datetime.now()
-        timestampStr = dateTimeObj.strftime("%d-%b-%Y %H:%M:%S")
+            if result.result_end_time.seconds:
+                result_seconds = result.result_end_time.seconds
 
-        if result.is_final:
+            if result.result_end_time.microseconds:
+                result_micros = result.result_end_time.microseconds
 
+            stream.result_end_time = int((result_seconds * 1000) + (result_micros / 1000))
 
-            sys.stdout.write(str(timestampStr) + ": " + transcript + "\n")
-            stream.is_final_end_time = stream.result_end_time
-            stream.last_transcript_was_final = True
+            dateTimeObj = datetime.now()
+            timestampStr = dateTimeObj.strftime("%d-%b-%Y %H:%M:%S")
 
+            if result.is_final:
 
-            if do_transcript:
-                keyboard.write("Pieter-Jan at " + timestampStr+":")
-                keyboard.write(transcript +"\n")
+                sys.stdout.write(str(timestampStr) + ": " + transcript + "\n")
+                stream.is_final_end_time = stream.result_end_time
+                stream.last_transcript_was_final = True
 
+                if do_transcript:
+                    keyboard.write("Pieter-Jan at " + timestampStr + ":")
+                    keyboard.write(transcript + "\n")
 
-            if re.search(r"\b(transcription)\b", transcript, re.I):
-                do_transcript = not do_transcript
-                sys.stdout.write("Transcription is {}".format(do_transcript))
+                if re.search(r"\b(transcription)\b", transcript, re.I):
+                    do_transcript = not do_transcript
+                    sys.stdout.write("Transcription is {}".format(do_transcript))
 
+                if re.search(r"\b(command mode)\b", transcript, re.I):
+                    command_mode = not command_mode
+                    sys.stdout.write("Command Mode is {}".format(command_mode))
 
-            if re.search(r"\b(command mode)\b", transcript, re.I):
-                command_mode = not command_mode
-                sys.stdout.write("Command Mode is {}".format(command_mode))
+                if command_mode:
+                    if re.search(r"\b(exit|quit)\b", transcript, re.I):
+                        sys.stdout.write("Exiting..")
+                        stream.closed = True
+                        break
 
+                    if re.search(r"\b(mute|silent|unmute)\b", transcript, re.I):
+                        sys.stdout.write("MUTING SIGNAL..")
+                        keyboard.press_and_release('ctrl+shift+m')
 
-            if command_mode:
-                if re.search(r"\b(exit|quit)\b", transcript, re.I):
-                    sys.stdout.write("Exiting..")
-                    stream.closed = True
-                    break
+                    if re.search(r"\b(video)\b", transcript, re.I):
+                        sys.stdout.write("VIDEO SIGNAL..")
+                        keyboard.press_and_release('ctrl+shift+o')
 
-                if re.search(r"\b(mute|silent|unmute)\b", transcript, re.I):
-                    sys.stdout.write("MUTING SIGNAL..")
-                    keyboard.press_and_release('ctrl+shift+m')
-
-
-                if re.search(r"\b(video)\b", transcript, re.I):
-                    sys.stdout.write("VIDEO SIGNAL..")
-                    keyboard.press_and_release('ctrl+shift+o')
-
-
-                if re.search(r"\b(option A)\b", transcript, re.I):
-                    sys.stdout.write("FIRST OPTION..")
-                    keyboard.write('Pieter-Jan: VOTE A'+"\n")
-
-
-
-        else:
-
-            sys.stdout.write("NOT_FINAL" + str(timestampStr)+ ": " + transcript + "\r")
-
-            stream.last_transcript_was_final = False
+                    if re.search(r"\b(option A)\b", transcript, re.I):
+                        sys.stdout.write("FIRST OPTION..")
+                        keyboard.write('Pieter-Jan: VOTE A' + "\n")
 
 
-def main():
-    """start bidirectional streaming from microphone input to speech API"""
 
-    client = speech.SpeechClient()
-    config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=SAMPLE_RATE,
-        language_code="en-US",
-        max_alternatives=1,
-    )
+            else:
 
-    streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=True
-    )
+                sys.stdout.write("NOT_FINAL" + str(timestampStr) + ": " + transcript + "\r")
 
-    mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+                stream.last_transcript_was_final = False
+
+    def runTime(self):
+        """start bidirectional streaming from microphone input to speech API"""
+
+        client = speech.SpeechClient()
+        config = speech.RecognitionConfig(
+            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            sample_rate_hertz=SAMPLE_RATE,
+            language_code="en-US",
+            max_alternatives=1,
+        )
+
+        streaming_config = speech.StreamingRecognitionConfig(
+            config=config, interim_results=True
+        )
+
+        mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+
+        with mic_manager as stream:
+
+            while not stream.closed:
+
+                sys.stdout.write(
+                    "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
+                )
+
+                stream.audio_input = []
+                audio_generator = stream.generator()
+
+                requests = (
+                    speech.StreamingRecognizeRequest(audio_content=content)
+                    for content in audio_generator
+                )
+
+                responses = client.streaming_recognize(streaming_config, requests)
+
+                # Now, put the transcription responses to use.
+                self.listen_print_loop(responses, stream)
+
+                if stream.result_end_time > 0:
+                    stream.final_request_end_time = stream.is_final_end_time
+                stream.result_end_time = 0
+                stream.last_audio_input = []
+                stream.last_audio_input = stream.audio_input
+                stream.audio_input = []
+                stream.restart_counter = stream.restart_counter + 1
+
+                if not stream.last_transcript_was_final:
+                    sys.stdout.write("\n")
+                stream.new_stream = True
 
 
-    with mic_manager as stream:
-
-        while not stream.closed:
-
-            sys.stdout.write(
-                "\n" + str(STREAMING_LIMIT * stream.restart_counter) + ": NEW REQUEST\n"
-            )
-
-            stream.audio_input = []
-            audio_generator = stream.generator()
-
-            requests = (
-                speech.StreamingRecognizeRequest(audio_content=content)
-                for content in audio_generator
-            )
-
-            responses = client.streaming_recognize(streaming_config, requests)
-
-            # Now, put the transcription responses to use.
-            listen_print_loop(responses, stream)
-
-            if stream.result_end_time > 0:
-                stream.final_request_end_time = stream.is_final_end_time
-            stream.result_end_time = 0
-            stream.last_audio_input = []
-            stream.last_audio_input = stream.audio_input
-            stream.audio_input = []
-            stream.restart_counter = stream.restart_counter + 1
-
-            if not stream.last_transcript_was_final:
-                sys.stdout.write("\n")
-            stream.new_stream = True
-
-
-if __name__ == "__main__":
-
-    main()

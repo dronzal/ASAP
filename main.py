@@ -8,7 +8,6 @@ import concurrent.futures
 import queue
 from threading import Thread
 from numpy import ndarray
-import pyvirtualcam
 import random
 import sys
 
@@ -16,7 +15,7 @@ class LoadFeatures:
 
     def __init__(self, features=None, cam_width=640, cam_height=480):
 
-        # self.feature_list = ["bgMask", "stt", "visionMd", "vidGet", "vidShow"]
+        self.feature_list = ["bgMask", "stt", "visionMd", "vidGet", "vidShow"]
         # self.features_selected = [x for x in features if x in self.feature_list]
         # Load all features
         self.stt = STT.SpeechToText()

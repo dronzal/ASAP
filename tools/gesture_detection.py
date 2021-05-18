@@ -3,7 +3,7 @@ import mediapipe as mp
 import copy
 import threading
 import numpy as np
-from multiprocessing.shared_memory import SharedMemory
+#from multiprocessing.shared_memory import SharedMemory
 import time
 
 class GestureDetection:
