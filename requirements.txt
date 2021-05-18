@@ -163,6 +163,7 @@ Markdown==3.3.3
 MarkupSafe==1.1.0
 mask-rcnn==2.1
 matplotlib==3.3.3
+mediapipe==0.8.4.2
 mistune==0.8.4
 monotonic==1.5
 more-itertools==4.2.0
