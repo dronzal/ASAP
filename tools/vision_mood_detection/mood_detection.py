@@ -4,7 +4,7 @@ import numpy as np
 from keras.models import model_from_json
 from keras.preprocessing import image
 from threading import Thread
-
+import os
 
 class MoodDetection:
 
@@ -34,6 +34,7 @@ class MoodDetection:
         self.emotions_dict = emotions_dict
 
         # Drop extension
+        model = os.path.join(os.path.dirname(__file__), model)
         model_name = str(model).split(".")[0]
         try:
             # load model
@@ -43,6 +44,7 @@ class MoodDetection:
         except:
             raise Exception(f"Error load mood detection models.\nGiven models: {model_name}.json {model_name}.h5")
 
+        cascadeClassifier = os.path.join(os.path.dirname(__file__), cascadeClassifier)
         # Drop extension
         cascadeClassifier = str(cascadeClassifier).split(".")[0]
         try:
