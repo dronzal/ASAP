@@ -20,10 +20,8 @@ class LoadFeatures:
         # self.features_selected = [x for x in features if x in self.feature_list]
         # Load all features
         self.stt = STT.SpeechToText()
-        self.bgMask = bgm.BackgroundMask(model='tools/bgmask/models/segmentation/deconv_bnoptimized_munet.h5',
-                                         bg_im_path='tools/bgmask/bg_im/')
-        self.visionMd = MD.MoodDetection(model='tools/vision_mood_detection/models/fer.h5',
-                                         cascadeClassifier='tools/vision_mood_detection/models/haarcascade_frontalface_default.xml')
+        self.bgMask = bgm.BackgroundMask()
+        self.visionMd = MD.MoodDetection()
         self.gesture = gesture_detection.GestureDetection()
 
         self.cam_width = cam_width
@@ -38,6 +36,8 @@ class LoadFeatures:
         self.stt_result = ""
         self.black_bg = False
 
+        self.debug = True
+
     def start(self, start=True):
         if self.started and start:
             print("Already started")
@@ -47,7 +47,8 @@ class LoadFeatures:
 
     def stop(self):
         self.started = False
-        print("Stop")
+        if self.debug:
+            print("Stop")
         self.p_stt.terminate()
         sys.exit()
 
@@ -70,8 +71,8 @@ class LoadFeatures:
 
         # Uncomment if you want to use virtualCam
         # virual_cam = pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20)
-
-        print('Start ASAP')
+        if self.debug:
+            print('Start ASAP')
 
         while self.started:
 
@@ -101,8 +102,14 @@ class LoadFeatures:
                 if "stop" in self.stt_result:
                     self.black_bg = False
                     self.stt_result = ""
+                if not isinstance(self.visionMd.bucket, type(None)):
+                    print(self.visionMd.bucket)
+                    self.visionMd.bucket = None
 
-                # Resize the frame
+                if not isinstance(self.gesture.bucket, type(None)):
+                    print(self.gesture.bucket)
+                    self.gesture.bucket = None                # Resize the frame
+
                 self.result_frame = cv2.resize(self.bgMask.bucket, (self.cam_width, self.cam_height), interpolation=cv2.INTER_AREA)
 
                 # If black_bg is True, fill the background with zero's = black
@@ -117,7 +124,8 @@ class LoadFeatures:
                 # 2, bgMask time
                 # 3, vision Mood time
                 # 4, Gesture detection time
-                print(fps, self.bgMask.time, self.visionMd.time, self.gesture.time)
+                if self.debug:
+                    print(fps, self.bgMask.time, self.visionMd.time, self.gesture.time)
 
                 # Set timings to zero
                 self.bgMask.time = 0
