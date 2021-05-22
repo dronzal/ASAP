@@ -26,8 +26,8 @@ Then open main.py in IDE
 ```python
 # Make sure that the google credentials are correct.
 asap = LoadFeatures(google_credentials="/folder_to/asap-309508-7398a8c4473f.json")
-# Available features ["bgMask", "stt", "visionMd","gesture", "vidGet", "vidShow", "virtualCam]
-asap.start(features=["stt", "vidGet", "gesture" , "visionMd", "bgMask", "virtualCam"])
+# And start the ASAP application
+asap.start()
 ```
 
 ## Requirements
