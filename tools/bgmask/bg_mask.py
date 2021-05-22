@@ -10,6 +10,7 @@ class BackgroundMask:
     def __init__(self, model="models/segmentation/deconv_bnoptimized_munet.h5", bg_im_path="bg_im/"):
         # load model
         try:
+            model = os.path.join(os.path.dirname(__file__), model)
             self.model = load_model(model, compile=False)
         except:
             raise Exception(f"Couldn't load the model\nGiven: {model}")
@@ -17,6 +18,7 @@ class BackgroundMask:
         # Target size
         self.tgt_size=640
 
+        bg_im_path = os.path.join(os.path.dirname(__file__), bg_im_path)
         self.bg_path = bg_im_path
         self.bg_list = self.get_bg(self.bg_path)
         self.change_bgd()
