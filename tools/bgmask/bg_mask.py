@@ -28,6 +28,8 @@ class BackgroundMask:
         self.bucket = None
         self.thread = None
 
+        self.frame = None
+
     @staticmethod
     def get_bg(folder):
         """
@@ -88,6 +90,4 @@ class BackgroundMask:
         self.time = round((time.time() - startTime)*1000)
         # Drop result in the bucket
         self.bucket = frame[...,::-1]
-        return self.bucket
-
 

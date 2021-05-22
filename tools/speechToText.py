@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-# Copyright 2017 Google Inc. All Rights Reserved.
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,48 +12,77 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import division
+"""Google Cloud Speech API sample application using the streaming API.
+NOTE: This module requires the dependencies `pyaudio` and `termcolor`.
+To install using pip:
+    pip install pyaudio
+    pip install termcolor
+"""
+
+from threading import Thread
+import sys
+import time
+
 from google.cloud import speech
 import pyaudio
-import queue
+from six.moves import queue
+
 import os
-from threading import Thread
-
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/puyar/Documents/Playroom/asap-309508-7398a8c4473f.json"
 
 
-class MicrophoneStream(object):
+# Audio recording parameters
+STREAMING_LIMIT = 240000000  # 4 minutes
+SAMPLE_RATE = 16000
+CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
+
+command_mode = False
+do_transcript = False
+
+
+def get_current_time():
+    """Return Current Time in MS."""
+    return int(round(time.time() * 1000))
+
+
+class ResumableMicrophoneStream:
     """Opens a recording stream as a generator yielding the audio chunks."""
 
-    def __init__(self, rate=16000, chunk=int(16000/10)):
+    def __init__(self, rate=SAMPLE_RATE, chunk_size=CHUNK_SIZE):
         self._rate = rate
-        self._chunk = chunk
-
-        # Create a thread-safe buffer of audio data
+        self.chunk_size = chunk_size
+        self._num_channels = 1
         self._buff = queue.Queue()
         self.closed = True
-
-    def __enter__(self):
+        self.start_time = get_current_time()
+        self.restart_counter = 0
+        self.audio_input = []
+        self.last_audio_input = []
+        self.result_end_time = 0
+        self.is_final_end_time = 0
+        self.final_request_end_time = 0
+        self.bridging_offset = 0
+        self.last_transcript_was_final = False
+        self.new_stream = True
         self._audio_interface = pyaudio.PyAudio()
         self._audio_stream = self._audio_interface.open(
-                                                format=pyaudio.paInt16,
-                                                # The API currently only supports 1-channel (mono) audio
-                                                # https://goo.gl/z757pE
-                                                channels=1,
-                                                rate=self._rate,
-                                                input=True,
-                                                frames_per_buffer=self._chunk,
-                                                # Run the audio stream asynchronously to fill the buffer object.
-                                                # This is necessary so that the input device's buffer doesn't
-                                                # overflow while the calling thread makes network requests, etc.
-                                                stream_callback=self._fill_buffer,
-                                                            )
+            format=pyaudio.paInt16,
+            channels=self._num_channels,
+            rate=self._rate,
+            input=True,
+            frames_per_buffer=self.chunk_size,
+            # Run the audio stream asynchronously to fill the buffer object.
+            # This is necessary so that the input device's buffer doesn't
+            # overflow while the calling thread makes network requests, etc.
+            stream_callback=self._fill_buffer,
+        )
+
+    def __enter__(self):
 
         self.closed = False
-
         return self
 
     def __exit__(self, type, value, traceback):
+
         self._audio_stream.stop_stream()
         self._audio_stream.close()
         self.closed = True
@@ -64,28 +91,63 @@ class MicrophoneStream(object):
         self._buff.put(None)
         self._audio_interface.terminate()
 
-    def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
+    def _fill_buffer(self, in_data, *args, **kwargs):
         """Continuously collect data from the audio stream, into the buffer."""
+
         self._buff.put(in_data)
         return None, pyaudio.paContinue
 
     def generator(self):
+        """Stream Audio from microphone to API and to local buffer"""
+
         while not self.closed:
+            data = []
+
+            if self.new_stream and self.last_audio_input:
+
+                chunk_time = STREAMING_LIMIT / len(self.last_audio_input)
+
+                if chunk_time != 0:
+
+                    if self.bridging_offset < 0:
+                        self.bridging_offset = 0
+
+                    if self.bridging_offset > self.final_request_end_time:
+                        self.bridging_offset = self.final_request_end_time
+
+                    chunks_from_ms = round(
+                        (self.final_request_end_time - self.bridging_offset)
+                        / chunk_time
+                    )
+
+                    self.bridging_offset = round(
+                        (len(self.last_audio_input) - chunks_from_ms) * chunk_time
+                    )
+
+                    for i in range(chunks_from_ms, len(self.last_audio_input)):
+                        data.append(self.last_audio_input[i])
+
+                self.new_stream = False
+
             # Use a blocking get() to ensure there's at least one chunk of
             # data, and stop iteration if the chunk is None, indicating the
             # end of the audio stream.
             chunk = self._buff.get()
+            self.audio_input.append(chunk)
+
             if chunk is None:
                 return
-            data = [chunk]
-
+            data.append(chunk)
             # Now consume whatever other data's still buffered.
             while True:
                 try:
                     chunk = self._buff.get(block=False)
+
                     if chunk is None:
                         return
                     data.append(chunk)
+                    self.audio_input.append(chunk)
+
                 except queue.Empty:
                     break
 
@@ -94,50 +156,122 @@ class MicrophoneStream(object):
 
 class SpeechToText:
 
-    def __init__(self, rate=16000, chunk=int(16000/10), language_code="en-UK"):
+    def __init__(self, rate=SAMPLE_RATE, language_code="en-UK", chunk=CHUNK_SIZE, google_credentials_file=""):
         self.bucket = None
         self.rate = rate
         self.chunk = chunk
-        self.language_code= language_code
+        self.language_code = language_code
         self.started = False
 
-    def listen_print_loop(self, q, responses):
-        num_chars_printed = 0
+        self.bucket = None
+
+        if os.path.exists(google_credentials_file):
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_credentials_file
+        else:
+            raise Exception(f"Google credentials file not found.\nGiven: {google_credentials_file}")
+
+    def listen_print_loop(self, responses, stream, queue, lock):
+
+        """Iterates through server responses and prints them.
+        The responses passed is a generator that will block until a response
+        is provided by the server.
+        Each response may contain multiple results, and each result may contain
+        multiple alternatives; for details, see https://goo.gl/tjCPAU.  Here we
+        print only the transcription for the top alternative of the top result.
+        In this case, responses are provided for interim results as well. If the
+        response is an interim one, print a line feed at the end of it, to allow
+        the next result to overwrite it, until the response is a final one. For the
+        final one, print a newline to preserve the finalized transcription.
+        """
+        global command_mode
+        global do_transcript
         for response in responses:
+
+            if get_current_time() - stream.start_time > STREAMING_LIMIT:
+                stream.start_time = get_current_time()
+                break
+
             if not response.results:
                 continue
 
             result = response.results[0]
+
             if not result.alternatives:
                 continue
 
             transcript = result.alternatives[0].transcript
-            overwrite_chars = " " * (num_chars_printed - len(transcript))
 
-            if not result.is_final:
-                num_chars_printed = len(transcript)
+            result_seconds = 0
+            result_micros = 0
+
+            if result.result_end_time.seconds:
+                result_seconds = result.result_end_time.seconds
+
+            if result.result_end_time.microseconds:
+                result_micros = result.result_end_time.microseconds
+
+            stream.result_end_time = int((result_seconds * 1000) + (result_micros / 1000))
+
+            if result.is_final:
+                self.bucket = str(transcript).lstrip().lower()
+                with lock:
+                    queue.put({"stt" : self.bucket})
+                stream.is_final_end_time = stream.result_end_time
+                stream.last_transcript_was_final = True
             else:
-                self.bucket = transcript + overwrite_chars
-                num_chars_printed = 0
-                q.put(self.bucket)
-                self.bucket = None
+                stream.last_transcript_was_final = False
 
-    def runTime(self, q):
-        self.client = speech.SpeechClient()
-        self.config = speech.RecognitionConfig(encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-                                          sample_rate_hertz=self.rate,
-                                          language_code=self.language_code)
+    def runTime(self, queue, lock):
+        """start bidirectional streaming from microphone input to speech API"""
 
-        self.streaming_config = speech.StreamingRecognitionConfig(config=self.config,
-                                                             interim_results=True)
-        while True:
-            with MicrophoneStream(self.rate, self.chunk) as stream:
+        client = speech.SpeechClient()
+        config = speech.RecognitionConfig(
+            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            sample_rate_hertz=SAMPLE_RATE,
+            language_code="en-US",
+            max_alternatives=1,
+        )
+
+        streaming_config = speech.StreamingRecognitionConfig(
+            config=config, interim_results=True
+        )
+
+        mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+
+        with mic_manager as stream:
+
+            while not stream.closed:
+                stream.audio_input = []
                 audio_generator = stream.generator()
-                requests = (speech.StreamingRecognizeRequest(audio_content=content)
-                            for content in audio_generator)
 
-                responses = self.client.streaming_recognize(self.streaming_config, requests)
+                requests = (
+                    speech.StreamingRecognizeRequest(audio_content=content)
+                    for content in audio_generator
+                )
 
-                self.listen_print_loop(q, responses)
+                responses = client.streaming_recognize(streaming_config, requests)
+
+                # Now, put the transcription responses to use.
+                self.listen_print_loop(responses, stream, queue, lock)
+
+                if stream.result_end_time > 0:
+                    stream.final_request_end_time = stream.is_final_end_time
+                stream.result_end_time = 0
+                stream.last_audio_input = []
+                stream.last_audio_input = stream.audio_input
+                stream.audio_input = []
+                stream.restart_counter = stream.restart_counter + 1
+
+                stream.new_stream = True
 
 
+if __name__ == "__main__":
+    s = SpeechToText(google_credentials_file="/home/puyar/Documents/Playroom/asap-309508-7398a8c4473f.json")
+    t1 = Thread(target=s.runTime, daemon=True)
+    t1.start()
+    while True:
+        if not isinstance(s.bucket, type(None)):
+            print(s.bucket)
+            s.bucket = None
+        time.sleep(0.1)
+        pass

@@ -60,6 +60,7 @@ class MoodDetection:
         self.time = 0
         self.thread = None
 
+
     def start(self):
         if self.started:
             print("mood runTime is already started")
@@ -96,4 +97,3 @@ class MoodDetection:
             else:
                 self.bucket = self.emotions_dict.get(max_index).get('emotion')
             self.time = round((time.time()-startTime)*1000)
-            return self.bucket

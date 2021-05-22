@@ -1,9 +1,7 @@
 import cv2 as cv
 import mediapipe as mp
 import copy
-import threading
 import numpy as np
-from multiprocessing.shared_memory import SharedMemory
 import time
 
 class GestureDetection:
@@ -26,6 +24,7 @@ class GestureDetection:
         self.bucket = None
         self.debug_frame = None
         self.time = 0
+        self.started = None
 
     @staticmethod
     def print_rect(image, color):
@@ -336,7 +335,6 @@ class GestureDetection:
 
         return thumb_up, recognized_sum, recognized_hand_gesture
 
-
     def runtime(self, frame):
         self.bucket = None
         startTime = time.time()
@@ -376,6 +374,5 @@ class GestureDetection:
                 debug_image = self.print_on_image(debug_image, "Thumb-up:", thumb_up, 10, 120)
             self.debug_frame = debug_image
             self.time = round((time.time() - startTime)*1000)
-            return self.bucket
 
 
