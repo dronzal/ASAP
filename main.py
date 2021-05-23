@@ -35,7 +35,7 @@ class ASAP:
         self.black_bg = False
 
         self.debug = False
-        self.result_frame = None
+        self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
         self.bgMask_frame = None
         self.mood = None
         self.gesture_result = None
@@ -46,7 +46,7 @@ class ASAP:
         self.lock = Lock()
 
         self.last_time_action = 0
-        self.actionHandler_delay= 1/200 # 20 frames per second
+        self.actionHandler_delay = 1/20 # 20 frames per second
 
         self.while_delay = 0.01
 
@@ -211,6 +211,22 @@ class ASAP:
         """
         return self.timings
 
+    @property
+    def get_stt(self):
+        """
+        Returns the stt text
+        :return: string
+        """
+        return self.stt.bucket
+
+    @property
+    def get_initial_frame(self):
+        """
+        Returns the initial frame captured by camera
+        :return: ndarray
+        """
+        return self.frame
+
     def runtime(self):
         """
         ASAP runtime. Runs forever if self.started is True.
@@ -260,26 +276,22 @@ class ASAP:
                 self.gesture.bucket = None
 
             if isinstance(self.bgMask.bucket, ndarray):
-                self.tmp = cv2.resize(self.bgMask.bucket, (self.cam_width, self.cam_height), interpolation=cv2.INTER_AREA)
+                tmp = cv2.resize(self.bgMask.bucket, (self.cam_width, self.cam_height), interpolation=cv2.INTER_AREA)
                 with self.lock:
-                    self.result_queue.put({"bg" : self.tmp})
+                    self.result_queue.put({"bg" : tmp})
                 self.bgMask.bucket = None
 
             stopTime = time.time()
-            fps = round(1/(stopTime - startTime), 1)
 
-            # Print the feature timings,
-            # 1, Total frames per second
-            # 2, bgMask time
-            # 3, vision Mood time
-            # 4, Gesture detection time
+            try:
+                fps = round(1/(stopTime - startTime), 1)
+            except ZeroDivisionError:
+                fps = 0
+
             self.timings = {"fps" : fps,
                             "bgMask" :self.bgMask.time,
                             "visionMd" :self.visionMd.time,
                             "gesture" : self.gesture.time,}
-
-            if self.debug:
-                print(self.timings)
 
             # Set timings to zero
             self.bgMask.time = 0
@@ -292,5 +304,6 @@ if __name__ == "__main__":
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
-        time.sleep(0.01)
+        print(asap.get_timings)
+        time.sleep(0.2)
         pass
