@@ -14,12 +14,9 @@ import sys
 import queue
 
 
-class LoadFeatures:
-    def __init__(self, features=None, cam_width=640, cam_height=480):
+class ASAP:
+    def __init__(self, cam_width=640, cam_height=480):
 
-        # self.feature_list = ["bgMask", "stt", "visionMd", "vidGet", "vidShow"]
-        # self.features_selected = [x for x in features if x in self.feature_list]
-        # Load all features
         self.stt = STT.SpeechToText(google_credentials_file="/home/puyar/Documents/Playroom/asap-309508-7398a8c4473f.json")
         self.bgMask = bgm.BackgroundMask()
         self.visionMd = MD.MoodDetection()
@@ -39,16 +36,40 @@ class LoadFeatures:
 
         self.debug = False
         self.result_frame = None
+        self.bgMask_frame = None
+        self.mood = None
+        self.gesture_result = None
+        self.timings = None
 
         self.result_queue = queue.Queue()
 
         self.lock = Lock()
 
         self.last_time_action = 0
-        self.actionHandler_delay= 1/20 # 20 frames per second
+        self.actionHandler_delay= 1/200 # 20 frames per second
+
+        self.while_delay = 0.01
+
+        # Actions
+        self.black_bg = False
+        self.show_gesture_debug = False
+
+    def virtualCam(self):
+        """
+        VirtualCam function
+        :return:
+        """
+        with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
+            while self.started:
+                cam.send(self.result_frame)
+                cam.sleep_until_next_frame()
 
     def actionHandler(self):
-        black_bg = False
+        """
+        ActionHandler function.
+        Always run in a thread.
+        :return:
+        """
         while self.started:
             t = time.time()
             if (t - self.last_time_action) >= self.actionHandler_delay:
@@ -61,30 +82,63 @@ class LoadFeatures:
                             # possible actions:
                             # mood, stt, bg, gesture
                             if "mood" in key: # if mood is in result
-                                print(result["mood"])
+                                self.mood = result['mood']
+
                             elif "stt" in key:
                                 tmp = result['stt']
                                 if "background" in tmp:
                                     self.bgMask.change_bgd(random.randint(0,4))
                                 elif "black" in tmp:
-                                    black_bg = True
+                                    self.black_bg = True
+                                elif "gesture" in tmp:
+                                    self.show_gesture_debug = True
                                 elif "stop" in tmp:
-                                    black_bg = False
+                                    self.black_bg = False
+                                    self.show_gesture_debug = False
 
-                                print(result["stt"])
                             elif "bg" in key:
-                                if not black_bg:
-                                    frame = result["bg"]
-                                    self.result_frame = frame
-                                else:
-                                    self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
+                                self.bgMask_frame = self.flip_frame(result["bg"])
 
                             elif "gesture" in key:
-                                print(result["gesture"])
+                                self.gesture_result = result["gesture"]
+
+                        self.build_end_frame()
+
                 self.last_time_action = t
-            time.sleep(0.01)
+            time.sleep(self.while_delay)
+
+    @staticmethod
+    def flip_frame(frame):
+        """
+        Function that flip the img by verctical axis
+        :param frame: ndarray
+        :return: flipped img
+        """
+        return cv2.flip(frame, 1)
+
+    def build_end_frame(self):
+        """
+        Function that builds the end frame
+        :return:
+        """
+        if self.black_bg:
+            self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
+
+        elif self.show_gesture_debug:
+            if isinstance(self.gesture.debug_frame, ndarray):
+                self.result_frame = self.gesture.debug_frame
+                self.gesture.debug_frame = None
+            else:
+                self.result_frame = self.bgMask_frame
+        else:
+            self.result_frame = self.bgMask_frame
 
     def start(self, start=True):
+        """
+        Function that starts the runtime
+        :param start: Boolean, std True
+        :return:
+        """
         if self.started and start:
             print("Already started")
         else:
@@ -92,17 +146,76 @@ class LoadFeatures:
             self.runtime()
 
     def stop(self):
+        """
+        Functions that stops en close the application
+        :return:
+        """
         self.started = False
         if self.debug:
             print("Stop")
         sys.exit()
 
     def videoCap(self):
+        """
+        Function that store a img frame in self.frame captured by device 0
+        Always run this in a thread.
+        :return:
+        """
         cap = cv2.VideoCapture(0)
         while self.started:
             self.ret, self.frame = cap.read()
 
+    def videoShow(self):
+        """
+        Function that shows the frame in cv2 GUI.
+        Always run this in a thread.
+        :return:
+        """
+        while self.started:
+            if isinstance(self.result_frame, ndarray):
+                cv2.imshow('frame', self.result_frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    self.stop()
+                self.result_frame = None
+            time.sleep(self.while_delay)
+
+    @property
+    def bg_mask(self):
+        """
+        Returns the finale result frame
+        :return: ndarray
+        """
+        return self.result_frame
+
+    @property
+    def gesture_frame(self):
+        """
+        Returns the gesture debug frame
+        :return: ndarray
+        """
+        return self.gesture.debug_frame
+
+    @property
+    def get_mood(self):
+        """
+        Returns the detected mood
+        :return: string
+        """
+        return self.mood
+
+    @property
+    def get_timings(self):
+        """
+        Returns the timings that each feature need
+        :return: dict
+        """
+        return self.timings
+
     def runtime(self):
+        """
+        ASAP runtime. Runs forever if self.started is True.
+        :return:
+        """
         # Init a thread for the Speech to Text service, and pass the queue.
         self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock,), daemon=True)
         self.stt_thread.start()
@@ -113,6 +226,12 @@ class LoadFeatures:
 
         self.action_thread = Thread(target=self.actionHandler, daemon=True)
         self.action_thread.start()
+
+        self.videoShow_thread = Thread(target=self.videoShow, daemon=True)
+        self.videoShow_thread.start()
+
+        self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True)
+        self.virtualCam_thread.start()
 
         # Uncomment if you want to use virtualCam
         # virtual_cam = pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20)
@@ -137,8 +256,8 @@ class LoadFeatures:
 
             if not isinstance(self.gesture.bucket, type(None)):
                 with self.lock:
-                    self.result_queue.put({"gesture" : self.gesture.bucket})
-                self.gesture.bucket = None                # Resize the frame
+                    self.result_queue.put({"gesture": self.gesture.bucket})
+                self.gesture.bucket = None
 
             if isinstance(self.bgMask.bucket, ndarray):
                 self.tmp = cv2.resize(self.bgMask.bucket, (self.cam_width, self.cam_height), interpolation=cv2.INTER_AREA)
@@ -154,22 +273,24 @@ class LoadFeatures:
             # 2, bgMask time
             # 3, vision Mood time
             # 4, Gesture detection time
+            self.timings = {"fps" : fps,
+                            "bgMask" :self.bgMask.time,
+                            "visionMd" :self.visionMd.time,
+                            "gesture" : self.gesture.time,}
+
             if self.debug:
-                print(fps, self.bgMask.time, self.visionMd.time, self.gesture.time)
+                print(self.timings)
 
             # Set timings to zero
             self.bgMask.time = 0
             self.visionMd.time = 0
             self.gesture.time = 0
 
-            if isinstance(self.result_frame, ndarray):
-                cv2.imshow('frame', self.result_frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    self.stop()
-
 
 if __name__ == "__main__":
-    asap = LoadFeatures()
-    asap.start()
-    while True:
+    asap = ASAP()
+    asap_thread = Thread(target=asap.start, daemon=True)
+    asap_thread.start()
+    while asap.started:
+        time.sleep(0.01)
         pass
