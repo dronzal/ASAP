@@ -13,9 +13,12 @@ import random
 import sys
 import queue
 from collections import Counter, deque
+import tensorflow as tf
+
 
 class ASAP:
     def __init__(self, cam_width=640, cam_height=480):
+        tf.autograph.set_verbosity(3)
         self.stt = STT.SpeechToText(google_credentials_file="/home/puyar/Documents/Playroom/asap-309508-7398a8c4473f.json")
         self.bgMask = bgm.BackgroundMask()
         self.visionMd = MD.MoodDetection()
@@ -27,14 +30,16 @@ class ASAP:
         # Bool for continuous runTime
         self.started = False
         self.cap = None
-        self.frame = None
+        self.frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
         self.counter = 0
+        self.show_video = True
 
         self.stt_result = ""
         self.black_bg = False
 
+        self.debug = False
         self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
-        self.bgMask_frame = None
+        self.bgMask_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
         self.gesture_result = None
         self.timings = None
 
@@ -46,7 +51,7 @@ class ASAP:
         self.last_time_action = 0
         self.actionHandler_delay = 1/20 # 20 frames per second
 
-        self.while_delay = 0.01
+        self.while_delay = 0.05
 
         # Actions
         self.black_bg = False
@@ -75,34 +80,35 @@ class ASAP:
             if (t - self.last_time_action) >= self.actionHandler_delay:
                 if not self.result_queue.empty():
                     with self.lock:
-                        length_queue = len(list(self.result_queue.queue))
-                        for x in range(length_queue):
-                            result = self.result_queue.get()
-                            key = dict(result).keys()
-                            # possible actions:
-                            # mood, stt, bg, gesture
-                            if "mood" in key: # if mood is in result
-                                self.mood_deque.append(result['mood'])
+                        tmp_queue = self.result_queue
+                    length_queue = len(list(tmp_queue.queue))
+                    for x in range(length_queue):
+                        result = tmp_queue.get()
+                        key = dict(result).keys()
+                        # possible actions:
+                        # mood, stt, bg, gesture
+                        if "mood" in key: # if mood is in result
+                            self.mood_deque.append(result['mood'])
 
-                            elif "stt" in key:
-                                tmp = result['stt']
-                                if "background" in tmp:
-                                    self.bgMask.change_bgd(random.randint(0,4))
-                                elif "black" in tmp:
-                                    self.black_bg = True
-                                elif "gesture" in tmp:
-                                    self.show_gesture_debug = True
-                                elif "stop" in tmp:
-                                    self.black_bg = False
-                                    self.show_gesture_debug = False
+                        elif "stt" in key:
+                            tmp = result['stt']
+                            if "background" in tmp:
+                                self.bgMask.change_bgd(random.randint(0,4))
+                            elif "black" in tmp:
+                                self.black_bg = True
+                            elif "gesture" in tmp:
+                                self.show_gesture_debug = True
+                            elif "stop" in tmp:
+                                self.black_bg = False
+                                self.show_gesture_debug = False
 
-                            elif "bg" in key:
-                                self.bgMask_frame = self.flip_frame(result["bg"])
+                        elif "bg" in key:
+                            self.bgMask_frame = self.flip_frame(result["bg"])
 
-                            elif "gesture" in key:
-                                self.gesture_result = result["gesture"]
+                        elif "gesture" in key:
+                            self.gesture_result = result["gesture"]
 
-                        self.build_end_frame()
+                    self.build_end_frame()
 
                 self.last_time_action = t
             time.sleep(self.while_delay)
@@ -151,6 +157,8 @@ class ASAP:
         :return:
         """
         self.started = False
+        if self.debug:
+            print("Stop")
         sys.exit()
 
     def videoCap(self):
@@ -170,20 +178,21 @@ class ASAP:
         :return:
         """
         while self.started:
-            if isinstance(self.result_frame, ndarray):
-                cv2.imshow('frame', self.result_frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    self.stop()
-                self.result_frame = None
+            if self.show_video:
+                if isinstance(self.result_frame, ndarray):
+                    cv2.imshow('frame', self.result_frame)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        self.stop()
+                    self.result_frame = None
             time.sleep(self.while_delay)
 
     @property
-    def bg_mask(self):
+    def bg_mask_frame(self):
         """
         Returns the finale result frame
         :return: ndarray
         """
-        return self.result_frame
+        return self.to_jpg(self.bgMask_frame)
 
     @property
     def gesture_frame(self):
@@ -191,7 +200,7 @@ class ASAP:
         Returns the gesture debug frame
         :return: ndarray
         """
-        return self.gesture.debug_frame
+        return self.to_jpg(self.gesture.debug_frame)
 
     @property
     def get_mood(self):
@@ -223,7 +232,11 @@ class ASAP:
         Returns the initial frame captured by camera
         :return: ndarray
         """
-        return self.frame
+        return self.to_jpg(self.frame)
+
+    def to_jpg(self, frame):
+        ret, jpeg = cv2.imencode('.jpg', frame)
+        return jpeg
 
     def mood(self, mostCommon=True):
         """
@@ -261,10 +274,9 @@ class ASAP:
         self.videoShow_thread.start()
 
         self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True)
-        self.virtualCam_thread.start()
+       # self.virtualCam_thread.start()
 
         while self.started:
-
             # Get time, this for calculating the total frames per second.
             startTime = time.time()
 
