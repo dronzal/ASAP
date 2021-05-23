@@ -12,11 +12,10 @@ import pyvirtualcam
 import random
 import sys
 import queue
-
+from collections import Counter, deque
 
 class ASAP:
     def __init__(self, cam_width=640, cam_height=480):
-
         self.stt = STT.SpeechToText(google_credentials_file="/home/puyar/Documents/Playroom/asap-309508-7398a8c4473f.json")
         self.bgMask = bgm.BackgroundMask()
         self.visionMd = MD.MoodDetection()
@@ -37,11 +36,11 @@ class ASAP:
         self.debug = False
         self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
         self.bgMask_frame = None
-        self.mood = None
         self.gesture_result = None
         self.timings = None
 
         self.result_queue = queue.Queue()
+        self.mood_deque = deque(maxlen=10)
 
         self.lock = Lock()
 
@@ -82,7 +81,7 @@ class ASAP:
                             # possible actions:
                             # mood, stt, bg, gesture
                             if "mood" in key: # if mood is in result
-                                self.mood = result['mood']
+                                self.mood_deque.append(result['mood'])
 
                             elif "stt" in key:
                                 tmp = result['stt']
@@ -227,6 +226,22 @@ class ASAP:
         """
         return self.frame
 
+    def mood(self, mostCommon=True):
+        """
+         This functions sort the objects in self.mood_queue by number occurs
+         and returns the most occurs element string name if mostCommon = True.
+         Otherwise the function return the full list.
+        :return: str
+        """
+        li = list(self.mood_deque)
+        if len(li):
+            if mostCommon:
+                return Counter(li).most_common(1)[0][0]
+            else:
+                return Counter(li)
+        else:
+            return None
+
     def runtime(self):
         """
         ASAP runtime. Runs forever if self.started is True.
@@ -304,6 +319,6 @@ if __name__ == "__main__":
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
-        print(asap.get_timings)
+        print(asap.mood())
         time.sleep(0.2)
         pass
