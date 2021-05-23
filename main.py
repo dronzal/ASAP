@@ -33,7 +33,6 @@ class ASAP:
         self.stt_result = ""
         self.black_bg = False
 
-        self.debug = False
         self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
         self.bgMask_frame = None
         self.gesture_result = None
@@ -152,8 +151,6 @@ class ASAP:
         :return:
         """
         self.started = False
-        if self.debug:
-            print("Stop")
         sys.exit()
 
     def videoCap(self):
@@ -265,11 +262,6 @@ class ASAP:
 
         self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True)
         self.virtualCam_thread.start()
-
-        # Uncomment if you want to use virtualCam
-        # virtual_cam = pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20)
-        if self.debug:
-            print('Start ASAP')
 
         while self.started:
 
