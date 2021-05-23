@@ -60,7 +60,9 @@ class ASAP:
         """
         with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
             while self.started:
-                cam.send(self.result_frame)
+                with self.lock:
+                    frame = self.result_frame.copy()
+                cam.send(frame)
                 cam.sleep_until_next_frame()
 
     def actionHandler(self):
