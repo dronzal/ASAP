@@ -26,9 +26,7 @@ import time
 from google.cloud import speech
 import pyaudio
 from six.moves import queue
-
 import os
-
 
 # Audio recording parameters
 STREAMING_LIMIT = 240000000  # 4 minutes
@@ -165,10 +163,10 @@ class SpeechToText:
 
         self.bucket = None
 
-        if os.path.exists(google_credentials_file):
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_credentials_file
-        else:
-            raise Exception(f"Google credentials file not found.\nGiven: {google_credentials_file}")
+        while not os.path.exists(google_credentials_file):
+            google_credentials_file = input('Google credentials file path not found.\nGive the right path: ')
+
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_credentials_file
 
     def listen_print_loop(self, responses, stream, queue, lock):
 
