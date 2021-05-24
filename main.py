@@ -60,18 +60,18 @@ class ASAP:
         self.show_gesture_debug = False
 
         self.websocket_q = queue.Queue()
+        self.frame_q = queue.Queue()
 
-    def virtualCam(self):
+    def virtualCam(self, input_q):
         """
         VirtualCam function
         :return:
         """
         with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
             while self.started:
-                with self.lock:
-                    frame = self.result_frame.copy()
-                cam.send(frame)
-                cam.sleep_until_next_frame()
+                data = input_q.get()
+                data = data[..., ::-1]
+                cam.send(data)
 
     def actionHandler(self):
         """
@@ -142,6 +142,7 @@ class ASAP:
                 self.result_frame = self.bgMask_frame
         else:
             self.result_frame = self.bgMask_frame
+        self.frame_q.put(self.result_frame)
 
     def start(self, start=True):
         """
@@ -174,6 +175,7 @@ class ASAP:
         cap = cv2.VideoCapture(0)
         while self.started:
             self.ret, self.frame = cap.read()
+            #self.frame_q.put(self.frame)
 
     def videoShow(self):
         """
@@ -294,8 +296,8 @@ class ASAP:
         self.videoShow_thread = Thread(target=self.videoShow, daemon=True)
         self.videoShow_thread.start()
 
-        self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True)
-        # self.virtualCam_thread.start()
+        self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,))
+        self.virtualCam_thread.start()
 
         self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
         self.websocket_thread.start()
