@@ -25,7 +25,7 @@ Then open main.py in IDE
 
 ```python
 # Make sure that the google credentials are correct.
-asap = LoadFeatures(google_credentials="/folder_to/asap-309508-7398a8c4473f.json")
+asap = ASAP(google_credentials="/folder_to/asap-309508-7398a8c4473f.json")
 # And start the ASAP application
 asap.start()
 ```
