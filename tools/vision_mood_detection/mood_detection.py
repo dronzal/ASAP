@@ -92,8 +92,15 @@ class MoodDetection:
             max_index = np.argmax(predictions[0])
 
             # emotions = ('angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral')
+            """
             if self.return_emoji:
                 self.bucket = self.emotions_dict.get(max_index).get('emoji')
             else:
                 self.bucket = self.emotions_dict.get(max_index).get('emotion')
+            """""
+            # self.bucket = self.emotions_dict.get(max_index).get('emotion')
+            self.bucket = {
+                "predictions": predictions.tolist(),
+                "dominant_index": max_index
+            }
             self.time = round((time.time()-startTime)*1000)

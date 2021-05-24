@@ -14,7 +14,9 @@ import sys
 import queue
 from collections import Counter, deque
 import tensorflow as tf
-
+import websockets
+import asyncio
+import json
 
 class ASAP:
     def __init__(self, cam_width=640, cam_height=480):
@@ -49,13 +51,15 @@ class ASAP:
         self.lock = Lock()
 
         self.last_time_action = 0
-        self.actionHandler_delay = 1/20 # 20 frames per second
+        self.actionHandler_delay = 1 / 20  # 20 frames per second
 
         self.while_delay = 0.05
 
         # Actions
         self.black_bg = False
         self.show_gesture_debug = False
+
+        self.websocket_q = queue.Queue()
 
     def virtualCam(self):
         """
@@ -87,13 +91,13 @@ class ASAP:
                         key = dict(result).keys()
                         # possible actions:
                         # mood, stt, bg, gesture
-                        if "mood" in key: # if mood is in result
+                        if "mood" in key:  # if mood is in result
                             self.mood_deque.append(result['mood'])
 
                         elif "stt" in key:
                             tmp = result['stt']
                             if "background" in tmp:
-                                self.bgMask.change_bgd(random.randint(0,4))
+                                self.bgMask.change_bgd(random.randint(0, 4))
                             elif "black" in tmp:
                                 self.black_bg = True
                             elif "gesture" in tmp:
@@ -186,6 +190,23 @@ class ASAP:
                     self.result_frame = None
             time.sleep(self.while_delay)
 
+    def websocket(self, in_q):
+        async def start_ws():
+            async with websockets.connect("ws://84.196.102.201:6789") as websocket:
+                print("connected")
+
+                while self.started:
+                    data = in_q.get()
+                    msg = json.dumps({"action": "mood", "name": "Simon",
+                           "payload": data})
+                    await websocket.send(msg)
+                    res = await websocket.recv()
+                    print("Res: ")
+                    print(res)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        asyncio.get_event_loop().run_until_complete(start_ws())
+
     @property
     def bg_mask_frame(self):
         """
@@ -248,9 +269,9 @@ class ASAP:
         li = list(self.mood_deque)
         if len(li):
             if mostCommon:
-                return Counter(li).most_common(1)[0][0]
+                return Counter(map(lambda el: el.get("dominant_index"), li)).most_common(1)[0][0]
             else:
-                return Counter(li)
+                return Counter(map(lambda el: el.get("dominant_index"), li)).most_common(1)[0][0]
         else:
             return None
 
@@ -274,7 +295,10 @@ class ASAP:
         self.videoShow_thread.start()
 
         self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True)
-       # self.virtualCam_thread.start()
+        # self.virtualCam_thread.start()
+
+        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
+        self.websocket_thread.start()
 
         while self.started:
             # Get time, this for calculating the total frames per second.
@@ -289,6 +313,7 @@ class ASAP:
             if not isinstance(self.visionMd.bucket, type(None)):
                 with self.lock:
                     self.result_queue.put({"mood": self.visionMd.bucket})
+                    self.websocket_q.put(self.visionMd.bucket.get("predictions"))
                 self.visionMd.bucket = None
 
             if not isinstance(self.gesture.bucket, type(None)):
@@ -299,20 +324,20 @@ class ASAP:
             if isinstance(self.bgMask.bucket, ndarray):
                 tmp = cv2.resize(self.bgMask.bucket, (self.cam_width, self.cam_height), interpolation=cv2.INTER_AREA)
                 with self.lock:
-                    self.result_queue.put({"bg" : tmp})
+                    self.result_queue.put({"bg": tmp})
                 self.bgMask.bucket = None
 
             stopTime = time.time()
 
             try:
-                fps = round(1/(stopTime - startTime), 1)
+                fps = round(1 / (stopTime - startTime), 1)
             except ZeroDivisionError:
                 fps = 0
 
-            self.timings = {"fps" : fps,
-                            "bgMask" :self.bgMask.time,
-                            "visionMd" :self.visionMd.time,
-                            "gesture" : self.gesture.time,}
+            self.timings = {"fps": fps,
+                            "bgMask": self.bgMask.time,
+                            "visionMd": self.visionMd.time,
+                            "gesture": self.gesture.time, }
 
             # Set timings to zero
             self.bgMask.time = 0
