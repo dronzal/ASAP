@@ -300,7 +300,7 @@ class ASAP:
         self.virtualCam_thread.start()
 
         self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
-        self.websocket_thread.start()
+        #self.websocket_thread.start()
 
         while self.started:
             # Get time, this for calculating the total frames per second.
