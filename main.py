@@ -19,7 +19,7 @@ import tensorflow as tf
 class ASAP:
     def __init__(self, cam_width=640, cam_height=480):
         tf.autograph.set_verbosity(3)
-        self.stt = STT.SpeechToText(google_credentials_file="/home/puyar/Documents/Playroom/asap-309508-7398a8c4473f.json")
+        self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
         self.bgMask = bgm.BackgroundMask()
         self.visionMd = MD.MoodDetection()
         self.gesture = gesture_detection.GestureDetection()
