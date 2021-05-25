@@ -69,7 +69,8 @@ class ASAP:
         """
         with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
             while self.started:
-                data = input_q.get()
+                with self.lock():
+                    data = input_q.get()
                 data = data[..., ::-1]
                 cam.send(data)
 
@@ -142,7 +143,8 @@ class ASAP:
                 self.result_frame = self.bgMask_frame
         else:
             self.result_frame = self.bgMask_frame
-        self.frame_q.put(self.result_frame)
+        with self.lock():
+            self.frame_q.put(self.result_frame)
 
     def start(self, start=True):
         """
