@@ -102,5 +102,6 @@ class MoodDetection:
             self.bucket = {
                 "predictions": predictions.tolist(),
                 "dominant_index": max_index
+                #"dominant_index": (max_index, predictions[max_index])
             }
             self.time = round((time.time()-startTime)*1000)
