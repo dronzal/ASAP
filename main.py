@@ -17,6 +17,7 @@ import tensorflow as tf
 import websockets
 import asyncio
 import json
+import pickle
 
 
 class ASAP:
@@ -233,7 +234,7 @@ class ASAP:
                     data = in_q.get()
                     msg = json.dumps({"action": "mood", "name": "Simon",
                            "payload": data})
-                    await websocket.send(msg)
+                    await websocket.send(pickle.dumps(msg))
                     res = await websocket.recv()
                     print("Res: ")
                     print(res)
