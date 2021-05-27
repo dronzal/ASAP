@@ -553,14 +553,14 @@ class GestureDetection:
                 else:
                     self.point_history.append([0, 0])  # No hand visible on the screen
 
-                # self.debug_frame = debug_image
-                self.bucket = debug_image
-                self.time = round((time.time() - startTime) * 1000)
-
                 # Anyway draw point history and regular information when index finger is shown
                 debug_image = self.draw_point_history(debug_image, self.point_history)
                 debug_image = self.draw_info(debug_image, self.fps)
 
+                # self.debug_frame = debug_image
+                self.bucket = debug_image
+                self.time = round((time.time() - startTime) * 1000)
+                
     @staticmethod
     def pre_process_landmark(landmark_list):
         '''
