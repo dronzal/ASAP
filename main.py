@@ -159,8 +159,6 @@ class ASAP:
             self.result_frame = cv2.line(self.result_frame, start_point, end_point, color, thickness)
             self.result_frame = cv2.circle(self.result_frame, (int(xPositionEmojiLine), int(yPositionTop-height_emoji)), 10, (255,0,0), 2)
 
-
-
         if self.black_bg:
             self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
 
@@ -398,5 +396,6 @@ if __name__ == "__main__":
     asap_thread.start()
     while asap.started:
         print(asap.mood(getIndex=False))
+        print(asap.get_stt)
         time.sleep(0.2)
         pass
