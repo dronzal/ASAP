@@ -21,7 +21,7 @@ import pickle
 
 
 class ASAP:
-    def __init__(self, cam_width=640, cam_height=480, ws_name):
+    def __init__(self, ws_name, cam_width=640, cam_height=480):
         tf.autograph.set_verbosity(3)
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
         self.bgMask = bgm.BackgroundMask()
