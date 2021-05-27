@@ -2,16 +2,19 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import tensorflow as tf
+import os
 
 
 class PointHistoryClassifier(object):
     def __init__(
         self,
-        model_path='model/point_history_classifier/point_history_classifier.tflite',
+        model_path='./point_history_classifier.tflite',
         score_th=0.5,
         invalid_value=0,
         num_threads=1,
     ):
+        model_path = os.path.join(os.path.dirname(__file__), model_path)
+
         self.interpreter = tf.lite.Interpreter(model_path=model_path,
                                                num_threads=num_threads)
 

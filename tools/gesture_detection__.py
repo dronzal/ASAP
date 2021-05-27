@@ -348,6 +348,8 @@ class GestureDetection:
 
         # When hand detected
         if not isinstance(results.multi_hand_landmarks, type(None)):
+            tmp = {}
+            idx = 0
             for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
                                                   results.multi_handedness):
 
@@ -365,14 +367,15 @@ class GestureDetection:
                 # Test simple number recognition directly with Mediapipe
                 thumb_up, recognized_sum, recognized_hand_gesture = self.recognize_hand_gesture(image, cx, cy,
                                                                  hand_landmarks, handedness)
-                self.bucket = {'thumb_up': thumb_up,
+                tmp[idx] = {'thumb_up': thumb_up,
                                 'recognized_sum': recognized_sum,
                                 'recognized_hand_gesture': recognized_hand_gesture}
-
+                idx += 1
                 debug_image = self.print_on_image(debug_image, "Hand Gesture:", recognized_hand_gesture, 10, 60)
                 debug_image = self.print_on_image(debug_image, "Sum:", recognized_sum, 10, 90)
                 debug_image = self.print_on_image(debug_image, "Thumb-up:", thumb_up, 10, 120)
             self.debug_frame = debug_image
+            self.bucket = tmp
             self.time = round((time.time() - startTime)*1000)
 
 

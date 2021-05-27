@@ -1,7 +1,7 @@
 from tools import speechToText as STT
 from tools.bgmask import bg_mask as bgm
 from tools.vision_mood_detection import mood_detection as MD
-from tools import gesture_detection
+from tools.gesture import gesture_detection
 import cv2
 import time
 import concurrent.futures
@@ -39,7 +39,9 @@ class ASAP:
         self.show_video = True
 
         self.stt_result = ""
+        self.gesture_result = ""
         self.black_bg = False
+        self.mute = False
 
         self.debug = False
         self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
@@ -107,27 +109,49 @@ class ASAP:
                             self.mood_deque.append(result['mood'])
 
                         elif "stt" in key:
-                            tmp = result['stt']
-                            if "background" in tmp:
-                                self.bgMask.change_bgd(random.randint(0, 4))
-                            elif "black" in tmp:
-                                self.black_bg = True
-                            elif "gesture" in tmp:
-                                self.show_gesture_debug = True
-                            elif "stop" in tmp:
-                                self.black_bg = False
-                                self.show_gesture_debug = False
+                            self.stt_actions(result['stt'])
 
                         elif "bg" in key:
                             self.bgMask_frame = self.flip_frame(result["bg"])
 
                         elif "gesture" in key:
-                            self.gesture_result = result["gesture"]
+                            self.gesture_action(result["gesture"])
 
                     self.build_end_frame()
+                    self.build_actions()
 
                 self.last_time_action = t
             time.sleep(self.while_delay)
+
+    def stt_actions(self, tmp: str):
+        if "background" in tmp:
+            self.bgMask.change_bgd(random.randint(0, 4))
+        elif "black" in tmp:
+            self.black_bg = True
+        elif "mute" in tmp:
+            self.mute = True
+        elif "gesture" in tmp:
+            self.show_gesture_debug = True
+        elif "stop" in tmp:
+            self.black_bg = False
+            self.show_gesture_debug = False
+            self.mute = False
+
+    def gesture_action(self, tmp: dict):
+        """
+        {0: {'gesture': ['Mute', 'Stop']}}
+        """
+        for key in tmp.keys():
+            li = tmp[key]['gesture']
+            self.gesture_result = ' '.join([str(elem) for elem in li])
+
+        if 'mute' in self.gesture_result:
+            self.mute = True
+            print("muted")
+
+    def build_actions(self):
+        if self.mute:
+            print("muted")
 
     @staticmethod
     def flip_frame(frame):
@@ -190,7 +214,6 @@ class ASAP:
     def stop(self):
         """
         Functions that stops en close the application
-        :return:
         """
         self.started = False
         if self.debug:
@@ -283,6 +306,10 @@ class ASAP:
         return self.stt.bucket
 
     @property
+    def get_gesture(self):
+        return self.gesture_result
+
+    @property
     def get_initial_frame(self):
         """
         Returns the initial frame captured by camera
@@ -353,7 +380,7 @@ class ASAP:
             with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
                 executor.submit(self.bgMask.runTime, self.frame)
                 executor.submit(self.visionMd.runTime, self.frame)
-                executor.submit(self.gesture.runtime, self.frame)
+                executor.submit(self.gesture.runTime, self.frame)
 
             if not isinstance(self.visionMd.bucket, type(None)):
                 with self.lock:
@@ -395,7 +422,6 @@ if __name__ == "__main__":
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
-        print(asap.mood(getIndex=False))
-        print(asap.get_stt)
+        print(asap.get_gesture)
         time.sleep(0.2)
         pass
