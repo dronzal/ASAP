@@ -35,7 +35,7 @@ class MoodDetection:
 
         # Drop extension
         model = os.path.join(os.path.dirname(__file__), model)
-        model_name = str(model).split(".")[0]
+        model_name = model
         try:
             # load model
             model = model_from_json(open(f"{model_name}.json", "r").read())

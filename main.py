@@ -18,6 +18,7 @@ import websockets
 import asyncio
 import json
 
+
 class ASAP:
     def __init__(self, cam_width=640, cam_height=480):
         tf.autograph.set_verbosity(3)
@@ -77,8 +78,7 @@ class ASAP:
         """
         with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
             while self.started:
-                with self.lock():
-                    data = input_q.get()
+                data = input_q.get()
                 data = data[..., ::-1]
                 cam.send(data)
 
@@ -202,7 +202,11 @@ class ASAP:
         Always run this in a thread.
         :return:
         """
-        cap = cv2.VideoCapture(0)
+        try:
+            cap = cv2.VideoCapture(0)
+        except:
+            cap = cv2.VideoCapture(cv2.CAP_DSHOW)
+
         while self.started:
             self.ret, self.frame = cap.read()
 
@@ -225,7 +229,6 @@ class ASAP:
         async def start_ws():
             async with websockets.connect("ws://84.196.102.201:6789") as websocket:
                 print("connected")
-
                 while self.started:
                     data = in_q.get()
                     msg = json.dumps({"action": "mood", "name": "Simon",
