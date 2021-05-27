@@ -21,7 +21,7 @@ import pickle
 
 
 class ASAP:
-    def __init__(self, cam_width=640, cam_height=480):
+    def __init__(self, cam_width=640, cam_height=480, ws_name):
         tf.autograph.set_verbosity(3)
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
         self.bgMask = bgm.BackgroundMask()
@@ -49,6 +49,8 @@ class ASAP:
 
         self.result_queue = queue.Queue()
         self.mood_deque = deque(maxlen=10)
+
+        self.ws_user = ws_name
 
         self.lock = Lock()
 
@@ -232,7 +234,7 @@ class ASAP:
                 print("connected")
                 while self.started:
                     data = in_q.get()
-                    msg = json.dumps({"action": "mood", "name": "Simon",
+                    msg = json.dumps({"action": "mood", "name": self.ws_user,
                            "payload": data})
                     await websocket.send(pickle.dumps(msg))
                     res = await websocket.recv()
@@ -391,7 +393,7 @@ class ASAP:
 
 
 if __name__ == "__main__":
-    asap = ASAP()
+    asap = ASAP(ws_name="Arne")
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
