@@ -19,10 +19,12 @@ import asyncio
 import json
 import pickle
 
-
 class ASAP:
     def __init__(self, ws_name, cam_width=640, cam_height=480):
-        tf.autograph.set_verbosity(3)
+        while not ws_name:
+            ws_name = input("Please, input a user name: ")
+        self.ws_name = ws_name
+
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
         self.bgMask = bgm.BackgroundMask()
         self.visionMd = MD.MoodDetection()
@@ -51,8 +53,6 @@ class ASAP:
 
         self.result_queue = queue.Queue()
         self.mood_deque = deque(maxlen=10)
-
-        self.ws_user = ws_name
 
         self.lock = Lock()
 
