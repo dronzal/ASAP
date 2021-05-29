@@ -1,6 +1,16 @@
-''' Gesture Detection
-...
+'''
+Gesture Detection
 
+This file is part of the ASAP Interactive Videoconferencing AI/ML Tools
+Copyright 2021, ASAP team, authored by Alexis Metz
+
+The code makes use of existing libraries and is based in large parts on the following repositories:
+- It uses the Mediapipe framework published by Google
+https://mediapipe.dev/
+- It is based on code published by Kazuhito00 on Github
+https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/README_EN.md
+- It uses the hand gestures trained by kinivi
+https://github.com/kinivi/tello-gesture-control
 '''
 
 # Import libraries: ml
