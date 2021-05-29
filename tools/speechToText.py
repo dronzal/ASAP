@@ -18,7 +18,7 @@ To install using pip:
     pip install pyaudio
     pip install termcolor
 """
-
+import threading
 from threading import Thread
 import sys
 import time
@@ -154,21 +154,38 @@ class ResumableMicrophoneStream:
 
 class SpeechToText:
 
-    def __init__(self, rate=SAMPLE_RATE, language_code="en-UK", chunk=CHUNK_SIZE, google_credentials_file=""):
-        self.bucket = None
+    def __init__(self, rate=SAMPLE_RATE, language_code="en-UK", chunk=CHUNK_SIZE, google_credentials_file="d:/asap-309508-7398a8c4473f.json"):
+
         self.rate = rate
         self.chunk = chunk
         self.language_code = language_code
         self.started = False
 
-        self.bucket = None
+        self.bucket = ""
 
-        while not os.path.exists(google_credentials_file):
-            google_credentials_file = input('Google credentials file path not found.\nGive the right path: ')
+        #while not os.path.exists(google_credentials_file):
+        #    google_credentials_file = input('Google credentials file path not found.\nGive the right path: ')
 
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_credentials_file
 
+    def start(self):
+        if self.started:
+            print("STT thread already started.")
+        else:
+            print("Starting STT")
+            self.started = True
+            self.thread = threading.Thread(target=self.runTime, name='SttThread', daemon=True)
+            self.thread.start()
+
+    def stop(self):
+        if not self.started:
+            print("stt  thread already stopped.")
+        else:
+            self.started = False
+
     def listen_print_loop(self, responses, stream, queue, lock):
+
+        self.bucket = "SOMETHING"
 
         """Iterates through server responses and prints them.
         The responses passed is a generator that will block until a response
@@ -212,8 +229,8 @@ class SpeechToText:
 
             if result.is_final:
                 self.bucket = str(transcript).lstrip().lower()
-                with lock:
-                    queue.put({"stt" : self.bucket})
+                #with lock:
+                #    queue.put({"stt" : self.bucket})
                 stream.is_final_end_time = stream.result_end_time
                 stream.last_transcript_was_final = True
             else:
@@ -264,12 +281,21 @@ class SpeechToText:
 
 
 if __name__ == "__main__":
-    s = SpeechToText(google_credentials_file="/home/puyar/Documents/Playroom/asap-309508-7398a8c4473f.json")
-    t1 = Thread(target=s.runTime, daemon=True)
-    t1.start()
-    while True:
-        if not isinstance(s.bucket, type(None)):
-            print(s.bucket)
-            s.bucket = None
-        time.sleep(0.1)
-        pass
+    stt = SpeechToText()
+    stt.start()
+
+    running = True
+    i = 0
+    while running:
+        print(i)
+        i+=1
+        time.sleep(1)
+
+
+
+    #while True:
+    #    if not isinstance(s.bucket, type(None)):
+    #        print(s.bucket)
+    #        s.bucket = None
+    #    time.sleep(0.1)
+    #    pass

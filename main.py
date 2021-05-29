@@ -123,7 +123,11 @@ class ASAP:
                 self.last_time_action = t
             time.sleep(self.while_delay)
 
-    def stt_actions(self, tmp: str):
+    def stt_actions(self, tmp: dict):
+        print("stt_actions", tmp)
+        self.stt_result = tmp
+        #li = tmp['stt']
+        #self.stt_result = ' '.join([str(elem) for elem in li])
         if "background" in tmp:
             self.bgMask.change_bgd(random.randint(0, 4))
         elif "black" in tmp:
@@ -303,7 +307,7 @@ class ASAP:
         Returns the stt text
         :return: string
         """
-        return self.stt.bucket
+        return self.stt_result
 
     @property
     def get_gesture(self):
@@ -393,6 +397,11 @@ class ASAP:
                     self.result_queue.put({"gesture": self.gesture.bucket})
                 self.gesture.bucket = None
 
+            if not isinstance(self.stt.bucket, type(None)):
+                with self.lock:
+                    self.result_queue.put({"stt": self.stt.bucket})
+                self.stt.bucket = None
+
             if isinstance(self.bgMask.bucket, ndarray):
                 tmp = cv2.resize(self.bgMask.bucket, (self.cam_width, self.cam_height), interpolation=cv2.INTER_AREA)
                 with self.lock:
@@ -422,6 +431,7 @@ if __name__ == "__main__":
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
-        print(asap.get_gesture)
+        #print(asap.get_gesture)
+        print("stt", asap.get_stt)
         time.sleep(0.2)
         pass

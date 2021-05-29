@@ -7,6 +7,8 @@ pandas==1.2.4
 pyvirtualcam==0.7.0
 six==1.15.0
 tensorflow==2.4.1
+setproctitle==1.2.2
+websockets==9.1
 
 # PyAudio @ file:///C:/Users/simon/pipwin/PyAudio-0.2.11-cp37-cp37m-win_amd64.whl
 # For pyaudio on windows:
