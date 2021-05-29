@@ -17,7 +17,6 @@ import tensorflow as tf
 import websockets
 import asyncio
 import json
-import pickle
 
 class ASAP:
     def __init__(self, ws_name, cam_width=640, cam_height=480):
@@ -171,8 +170,6 @@ class ASAP:
             xPositionEmojiLine = 500
             heightLine = 200
             yPositionTop = 250
-            print("preds: ", self.predictions())
-            print("moods: ", self.mood(getIndex=False))
             height_emoji = heightLine * self.predictions()[0][self.mood()]
             start_point = (xPositionEmojiLine, yPositionTop - heightLine)
             end_point = (xPositionEmojiLine, yPositionTop)
@@ -255,12 +252,11 @@ class ASAP:
                 print("connected")
                 while self.started:
                     data = in_q.get()
-                    msg = json.dumps({"action": "mood", "name": self.ws_user,
-                           "payload": data})
-                    await websocket.send(pickle.dumps(msg))
+                    msg = json.dumps(data)
+                    print("About to send", msg)
+                    await websocket.send(msg)
                     res = await websocket.recv()
-                    print("Res: ")
-                    print(res)
+                    print("Res: ", res)
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         asyncio.get_event_loop().run_until_complete(start_ws())
@@ -367,10 +363,10 @@ class ASAP:
         self.videoShow_thread.start()
 
         self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,))
-        # self.virtualCam_thread.start()
+        self.virtualCam_thread.start()
 
         self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
-        #self.websocket_thread.start()
+        self.websocket_thread.start()
 
         while self.started:
             # Get time, this for calculating the total frames per second.
@@ -383,9 +379,12 @@ class ASAP:
                 executor.submit(self.gesture.runTime, self.frame)
 
             if not isinstance(self.visionMd.bucket, type(None)):
-                with self.lock:
-                    self.result_queue.put({"mood": self.visionMd.bucket})
-                    self.websocket_q.put(self.visionMd.bucket.get("predictions"))
+                self.result_queue.put({"mood": self.visionMd.bucket})
+                self.websocket_q.put({
+                    "action":"mood",
+                    "name": self.ws_name,
+                    "payload": self.visionMd.bucket.get("predictions")
+                })
                 self.visionMd.bucket = None
 
             if not isinstance(self.gesture.bucket, type(None)):
@@ -418,7 +417,7 @@ class ASAP:
 
 
 if __name__ == "__main__":
-    asap = ASAP(ws_name="Arne")
+    asap = ASAP(ws_name="Simon")
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
