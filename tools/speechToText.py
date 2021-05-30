@@ -19,8 +19,6 @@ To install using pip:
     pip install termcolor
 """
 import threading
-from threading import Thread
-import sys
 import time
 
 from google.cloud import speech
@@ -32,9 +30,6 @@ import os
 STREAMING_LIMIT = 240000000  # 4 minutes
 SAMPLE_RATE = 16000
 CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
-
-command_mode = False
-do_transcript = False
 
 
 def get_current_time():
@@ -154,7 +149,8 @@ class ResumableMicrophoneStream:
 
 class SpeechToText:
 
-    def __init__(self, rate=SAMPLE_RATE, language_code="en-UK", chunk=CHUNK_SIZE, google_credentials_file="d:/asap-309508-7398a8c4473f.json"):
+    def __init__(self, rate=SAMPLE_RATE, language_code="en-UK", chunk=CHUNK_SIZE,
+                 google_credentials_file="./google_credentials.json"):
 
         self.rate = rate
         self.chunk = chunk
@@ -163,7 +159,7 @@ class SpeechToText:
 
         self.bucket = ""
 
-        #while not os.path.exists(google_credentials_file):
+        # while not os.path.exists(google_credentials_file):
         #    google_credentials_file = input('Google credentials file path not found.\nGive the right path: ')
 
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_credentials_file
@@ -198,8 +194,7 @@ class SpeechToText:
         the next result to overwrite it, until the response is a final one. For the
         final one, print a newline to preserve the finalized transcription.
         """
-        global command_mode
-        global do_transcript
+
         for response in responses:
 
             if get_current_time() - stream.start_time > STREAMING_LIMIT:
@@ -229,8 +224,6 @@ class SpeechToText:
 
             if result.is_final:
                 self.bucket = str(transcript).lstrip().lower()
-                #with lock:
-                #    queue.put({"stt" : self.bucket})
                 stream.is_final_end_time = stream.result_end_time
                 stream.last_transcript_was_final = True
             else:
@@ -283,19 +276,3 @@ class SpeechToText:
 if __name__ == "__main__":
     stt = SpeechToText()
     stt.start()
-
-    running = True
-    i = 0
-    while running:
-        print(i)
-        i+=1
-        time.sleep(1)
-
-
-
-    #while True:
-    #    if not isinstance(s.bucket, type(None)):
-    #        print(s.bucket)
-    #        s.bucket = None
-    #    time.sleep(0.1)
-    #    pass
