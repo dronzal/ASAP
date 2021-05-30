@@ -19,7 +19,6 @@ keyboard==0.13.5
 # You can also do it with pip but then you have to enter a world of pain and build the binaries yourself. Winpip uses pre-built binaries.
 
 PyAudio~=0.2.11
-websockets~=9.0.2
 asyncio~=3.4.3
 
 libcst~=0.3.19
