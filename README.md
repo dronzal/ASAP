@@ -96,7 +96,7 @@ The model training is executed in a Jupyter notebook. The neural network is fed 
 
 ### Voice / Gesture Commands
  
-Both voice commands as well as gestures are used to interact with the video conferencing tool and with the videoconference paerticipants. Currently the follwoing commands are supported:
+Both voice commands as well as gestures are used to interact with the video conferencing tool and with the videoconference participants. Currently the following commands are supported:
 
 #### Command Mode
 * Move into command mode: Show two hands to the webcam
