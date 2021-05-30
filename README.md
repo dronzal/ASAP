@@ -30,6 +30,12 @@ asap = ASAP(google_credentials="/folder_to/asap-309508-7398a8c4473f.json")
 asap.start()
 ```
 
+## Application
+
+The application needed to be designed to incorporate the results of different features. After initial performance issues, the following design has proven to be operational. A Threadpool executor controls three of the threads that require the webcam frames as input. Speech recognition runs as thread connected to a Google service. Three further threads control video capture, display and the virtual camera. Finally the client side actions are handled in a thread and another websocket thread takes care of the communication between clients / participants.
+
+<img src="assets/asap_uml.jpg" width="1080">
+
 ## Components
 
 Please click for further details:
