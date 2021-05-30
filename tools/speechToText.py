@@ -180,10 +180,8 @@ class SpeechToText:
             self.started = False
 
     def listen_print_loop(self, responses, stream, queue, lock):
+        """"Iterates through server responses and prints them.
 
-        self.bucket = "SOMETHING"
-
-        """Iterates through server responses and prints them.
         The responses passed is a generator that will block until a response
         is provided by the server.
         Each response may contain multiple results, and each result may contain
