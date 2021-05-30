@@ -98,7 +98,7 @@ Both voice commands as well as gestures are used to interact with the video conf
 * Mute the microphone: Show flat palm of one hand
 * Un-mute the microphone: Make an upward fist
 * Increase the volume: Index finger up (and thumb to the side)
-* Decrease the volume: Indec finger down (and thumb to the side)
+* Decrease the volume: Index finger down (and thumb to the side)
  
 #### Video
 * Black out the Camera: Point fist at the camera
@@ -119,7 +119,7 @@ Both voice commands as well as gestures are used to interact with the video conf
 
 * Start the voting: Victory sign
 * Cast your vote: 
-   * In case of yes/no: Show thumbs-up
+   * In case of yes/no: Show thumbs-up or
    * In case of more options: Show number with your fingers
 * Confirm vote: OK sign
 
