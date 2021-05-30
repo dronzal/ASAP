@@ -85,6 +85,8 @@ The model training is executed in a Jupyter notebook. The neural network is fed 
 </details>
 
 ## Features
+
+### Voice / Gesture Commands
  
 Both voice commands as well as gestures are used to interact with the video conferencing tool and with the videoconference paerticipants. Currently the follwoing commands are supported:
 
@@ -105,3 +107,24 @@ Both voice commands as well as gestures are used to interact with the video conf
 #### Background
 * Change the Background one-forward: Fist with thumb to one side
 * Change the Background one-backward: Fist with thumb to the other side
+
+#### Voting
+* Begin a voting process: Victory sign
+* Set the number of options: 
+   * Indicate yes/no question: Thumns-up sign or
+   * Show number of fingers [1..5]
+* Confirm the number of options displayed: OK sign
+
+--- Explain the options to the group ---
+
+* Start the voting: Victory sign
+* Cast your vote: 
+   * In case of yes/no: Show thumbs-up
+   * In case of more options: Show number with your fingers
+* Confirm vote: OK sign
+
+[not implemented] 
+--- Once all participants have voted, display the result on all screens ---
+
+### Mood Server
+...
