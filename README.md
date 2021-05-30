@@ -30,16 +30,37 @@ asap = ASAP(google_credentials="/folder_to/asap-309508-7398a8c4473f.json")
 asap.start()
 ```
 
-## Requirements
-
 ## Components
 
 <details>
 <summary>Gesture Recognition</summary>
 <p><p />
-The Gesture Recognition component makes use of the Google-developed mediapipe model for hand recognition. The hand landmarks are used as coordinates that can be fed into a neural network to recognize hand gestures and finger gestures
+The Gesture Recognition component makes use of the Google-developed Mediapipe framework for hand recognition. The hand landmarks are used as coordinates that can be fed into a neural network to recognize hand gestures (and finger gestures).
+ 
+#### Disclaimer
+The code makes use of existing libraries and is based in large parts on the following repositories:
+* It uses the Mediapipe framework published by Google: https://mediapipe.dev/
+* It is based on code published by Kazuhito00 on Github: https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/README_EN.md
+published under Apache 2.0 licence: https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/LICENSE
+* It uses hand gestures trained by kinivi, his neural network design and Jupyter notebook from Github: https://github.com/kinivi/tello-gesture-control
 
-#### Links
+#### Machine Learning / Artificial Intelligence
+AI/ML is used in this component to identify hand gestures in webcam images. The Google mediapipe framework allows to identify one or both hand(s) and returns the coordinates of hand, fingers and joints.
+ 
+<img src="assets/gesturesMediapipe.jpg" width="720">
+ 
+These coordinates are transformed in three steps: from the Mediapipe landmarks to relative coordinates, then the x/y components are separated and the resulting 
+variables normalized. 
+ 
+<img src="assets/gesturesXY.jpg" width="720">
+ 
+The Neural Network is a simple neural network with three fully connected RELU layers followed by a Softmax translation to the discrete results (originally 8, for our purposes one added):
+ 
+<img src="assets/gesturesNN.jpg" width="720">
+
+
+
+#### Further Links
 * Mediapipe
   * <a href="https://mediapipe.dev/demo/holistic_remote/" target="blank">Holistic Mediapipe demo</a>
 
