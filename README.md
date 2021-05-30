@@ -32,6 +32,8 @@ asap.start()
 
 ## Components
 
+Please click for further details:
+
 <details>
 <summary>Gesture Recognition</summary>
 <p><p />
@@ -52,18 +54,19 @@ These coordinates are transformed in three steps: from the Mediapipe landmarks t
 variables normalized. 
 <img src="assets/gesturesXY.png" width="720">
 <p />
-The Neural Network is a simple neural network with three fully connected RELU layers followed by a Softmax translation to the discrete results (originally 8, for our purposes one added):
+The neural network is a simple one with three fully connected RELU layers followed by a Softmax translation to the discrete results (originally 8, for our purposes one added):
 <img src="assets/gesturesNN.jpg" width="720">
 <p />
 The model training is executed in a Jupyter notebook. The neural network is fed with the normalized coordinates and the labels that indicate the hand gesture. The model achieves around 99.96% accuracy in around 00 epochs. The saved model is transformed into a tflite model and used to infer the hand gestures from the webcam images (pre-evaluated through Mediapipe)
- 
- #### Further Links
+
+#### Further Interesting Links
 * Mediapipe Demo
   * <a href="https://mediapipe.dev/demo/holistic_remote/" target="blank">Holistic Mediapipe demo</a>
+</p>
+</details>
 
-</p></details>
-
-<details><summary>Voice Commands / Text-2-Speech</summary>
+<details>
+<summary>Voice Commands / Text-2-Speech</summary>
 <p><p />
 ...
 </p>
@@ -81,7 +84,24 @@ The model training is executed in a Jupyter notebook. The neural network is fed 
 </p>
 </details>
 
-## (Potential) Features
+## Features
+ 
+Both voice commands as well as gestures are used to interact with the video conferencing tool and with the videoconference paerticipants. Currently the follwoing commands are supported:
 
-- [x] Voting workflow
-- [ ] Play sound when average mood exceeds threshold
+#### Command Mode
+* Move into command mode: Show two hands to the webcam
+* Cancel command mode: Show two hands again
+ 
+#### Audio
+* Mute the microphone: Show flat palm of one hand
+* Un-mute the microphone: Make an upward fist
+* Increase the volume: Index finger up (and thumb to the side)
+* Decrease the volume: Indec finger down (and thumb to the side)
+ 
+#### Video
+* Black out the Camera: Point fist at the camera
+* Return to Webcam display: Show upwards fist (same as un-mute)
+ 
+#### Background
+* Change the Background one-forward: Fist with thumb to one side
+* Change the Background one-backward: Fist with thumb to the other side
