@@ -54,7 +54,7 @@ These coordinates are transformed in three steps: from the Mediapipe landmarks t
 variables normalized. 
 <img src="assets/gesturesXY.png" width="720">
 <p />
-The neural network is a simple one with three fully connected RELU layers followed by a Softmax translation to the discrete results (originally 8, for our purposes one added):
+The neural network is a simple one with three fully connected RELU layers followed by a Softmax translation to the discrete results (originally 8, for our purposes one added): <br />
 <img src="assets/gesturesNN.jpg" width="720">
 <p />
 The model training is executed in a Jupyter notebook. The neural network is fed with the normalized coordinates and the labels that indicate the hand gesture. The model achieves around 99.96% accuracy in around 00 epochs. The saved model is transformed into a tflite model and used to infer the hand gestures from the webcam images (pre-evaluated through Mediapipe)
