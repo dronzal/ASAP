@@ -9,8 +9,12 @@ The code makes use of existing libraries and is based in large parts on the foll
 https://mediapipe.dev/
 - It is based on code published by Kazuhito00 on Github
 https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/README_EN.md
+published under Apache 2.0 licence
+https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/LICENSE
 - It uses the hand gestures trained by kinivi
 https://github.com/kinivi/tello-gesture-control
+published under Apache 2.0 licence
+https://github.com/kinivi/tello-gesture-control/blob/main/LICENSE
 '''
 
 # Import libraries: ml
