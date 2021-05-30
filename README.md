@@ -54,9 +54,11 @@ variables normalized.
 <p />
 The Neural Network is a simple neural network with three fully connected RELU layers followed by a Softmax translation to the discrete results (originally 8, for our purposes one added):
 <img src="assets/gesturesNN.jpg" width="720">
-
+<p />
+The model training is executed in a Jupyter notebook. The neural network is fed with the normalized coordinates and the labels that indicate the hand gesture. The model achieves around 99.96% accuracy in around 00 epochs. The saved model is transformed into a tflite model and used to infer the hand gestures from the webcam images (pre-evaluated through Mediapipe)
+ 
  #### Further Links
-* Mediapipe
+* Mediapipe Demo
   * <a href="https://mediapipe.dev/demo/holistic_remote/" target="blank">Holistic Mediapipe demo</a>
 
 </p></details>
