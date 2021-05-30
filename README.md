@@ -47,12 +47,12 @@ published under Apache 2.0 licence: https://github.com/Kazuhito00/hand-gesture-r
 #### Machine Learning / Artificial Intelligence
 AI/ML is used in this component to identify hand gestures in webcam images. The Google mediapipe framework allows to identify one or both hand(s) and returns the coordinates of hand, fingers and joints.
  
-<img src="assets/gesturesMediapipe.jpg" width="720">
+<img src="assets/gesturesMediapipe.png" width="720">
  
 These coordinates are transformed in three steps: from the Mediapipe landmarks to relative coordinates, then the x/y components are separated and the resulting 
 variables normalized. 
  
-<img src="assets/gesturesXY.jpg" width="720">
+<img src="assets/gesturesXY.png" width="720">
  
 The Neural Network is a simple neural network with three fully connected RELU layers followed by a Softmax translation to the discrete results (originally 8, for our purposes one added):
  
