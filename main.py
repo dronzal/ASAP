@@ -95,7 +95,7 @@ class ASAP:
                               5: {"emotion": "SURPRISE"},
                               6: {"emotion": "NEUTRAL"}}
 
-    def virtualcam(self, input_q):
+    def virtualCam(self, input_q):
         """
         VirtualCam function
         :return:
@@ -616,7 +616,7 @@ if __name__ == "__main__":
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
-        # print(asap.get_gesture)
+        print(asap.get_gesture)
         # print("stt", asap.get_stt)
         time.sleep(0.2)
         pass
