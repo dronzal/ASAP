@@ -552,8 +552,8 @@ class ASAP:
         self.videoShow_thread = Thread(target=self.videoShow, daemon=True)
         self.videoShow_thread.start()
 
-        self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,))
-        self.virtualCam_thread.start()
+        #self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,))
+        #self.virtualCam_thread.start()
 
         self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
         self.websocket_thread.start()
