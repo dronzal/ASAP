@@ -1,4 +1,4 @@
-'''
+"""
 Gesture Detection
 
 This file is part of the ASAP Interactive Videoconferencing AI/ML Tools
@@ -15,7 +15,7 @@ https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main
 https://github.com/kinivi/tello-gesture-control
 published under Apache 2.0 licence
 https://github.com/kinivi/tello-gesture-control/blob/main/LICENSE
-'''
+"""
 
 # Import libraries: ml
 import cv2 as cv

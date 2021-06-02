@@ -1,3 +1,10 @@
+"""
+ASAP Application
+
+This file is part of the ASAP Interactive Videoconferencing AI/ML Tools
+Copyright 2021, ASAP team, authored by Arne Depuydt
+"""
+
 import re
 from datetime import datetime
 
@@ -108,8 +115,7 @@ class ASAP:
 
     def actionhandler(self):
         """
-        ActionHandler function.
-        Always run in a thread.
+        ActionHandler function. Always run in a thread.
         :return:
         """
         while self.started:
@@ -246,9 +252,38 @@ class ASAP:
 
     def gesture_action(self, tmp: dict):
         """
-        {0: {'gesture': ['Mute', 'Stop']}}
+        This is the action function for the gesture recognition
 
-        volume up/down, background up/down, camera on/off, mute/unmute
+        The available actions are
+            - Command Mode
+            Move into command mode: Show two hands to the webcam
+            Cancel command mode: Show two hands again
+            - Audio
+            Mute the microphone: Show flat palm of one hand
+            Un-mute the microphone: Make an upward fist
+            Increase the volume: Index finger up (and thumb to the side)
+            Decrease the volume: Index finger down (and thumb to the side)
+            - Video
+            Black out the Camera: Point fist at the camera
+            Return to Webcam display: Show upwards fist (same as un-mute)
+            - Background
+            Change the Background one-forward: Fist with thumb to one side
+            Change the Background one-backward: Fist with thumb to the other side
+            - Voting
+            Begin a voting process: Victory sign
+            Set the number of options:
+                Indicate yes/no question: Thumns-up sign or
+                Show number of fingers [1..5]
+            Confirm the number of options displayed: OK sign
+            --- Explain the options to the group ---
+            Start the voting: Victory sign
+            Cast your vote:
+                In case of yes/no: Show thumbs-up or
+                In case of more options: Show number with your fingers
+            Confirm vote: OK sign
+
+        :param tmp:
+        :return:
         """
         for key in tmp.keys():
             li = tmp[key]['gesture']
