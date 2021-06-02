@@ -200,6 +200,8 @@ class ASAP:
             self.unmute = False
             self.show_gesture_debug = False
 
+        # TODO add volume up and down
+
         if re.search(r"\b(transcript mode on)\b", tmp, re.I):
             self.transcript_mode_on = True
 
