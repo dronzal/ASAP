@@ -162,6 +162,11 @@ class ASAP:
         self.stt_result = tmp
         print(self.stt_result)
         self.transcript_done = False
+        self.websocket_q.put({
+            "action": "log_entry",
+            "name": self.ws_name,
+            "payload": str(self.stt_result)
+        })
 
         if re.search(r"\b(command mode on)\b", tmp, re.I):
             self.command_mode = True
