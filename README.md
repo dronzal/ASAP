@@ -27,7 +27,7 @@ Then open main.py in IDE
 
 ```python
 # Make sure that the google credentials are correct.
-asap = ASAP(google_credentials="/folder_to/asap-309508-7398a8c4473f.json")
+asap = ASAP(ws_name="YOUR NAME")
 # And start the ASAP application
 asap.start()
 ```
@@ -44,7 +44,7 @@ Please click for further details:
 
 <details>
 <summary>Gesture Recognition</summary>
-<p><p />
+
 The Gesture Recognition component makes use of the Google-developed Mediapipe framework for hand recognition. The hand landmarks are used as coordinates that can be fed into a neural network to recognize hand gestures (and finger gestures).
  
 #### Disclaimer
@@ -75,8 +75,27 @@ The model training is executed in a Jupyter notebook. The neural network is fed 
 
 <details>
 <summary>Voice Commands / Text-2-Speech</summary>
-<p><p />
-...
+<p>
+The speech recognition is done by a service of Google. At first an own model 
+was trained, however this was not satisfying. Not a single word was recognised
+properly. By using the service of Google a more reliable result is obtained, 
+however there is still room for improvement.
+
+#### Disclaimer
+This code makes use of an existing service of Google. 
+* The service can be found at: https://cloud.google.com/speech-to-text
+* The basic code can be found on GitHub: https://github.com/googleapis/python-speech/tree/master/samples
+* 
+#### Machine Learning (ML) / Artificial Intelligence (AI)
+@TODO further writing, now just keywords.
+* Streaming speech recognition 	
+  Receive real-time speech recognition results as the API processes 
+  the audio input streamed from your application’s microphone or sent from 
+  a prerecorded audio file (inline or through Cloud Storage).
+  
+* using returned string
+#### Further Interesting Links
+
 </p>
 </details>
 
@@ -96,42 +115,79 @@ The model training is executed in a Jupyter notebook. The neural network is fed 
 
 ### Voice / Gesture Commands
  
-Both voice commands as well as gestures are used to interact with the video conferencing tool and with the videoconference participants. Currently the following commands are supported:
+Both voice commands and gestures are used to interact with the video conferencing 
+tool and with the videoconference participants. Voice commands are activated by 
+saying _the italic words_, gesture commands are activated by doing 
+**the bold instructions**. Currently the following commands are supported:
 
 #### Command Mode
-* Move into command mode: Show two hands to the webcam
-* Cancel command mode: Show two hands again
+* Move into command mode:
+  * **Show two hands to the webcam** 
+  * _command mode on_
+* Cancel command mode: 
+  * **Show two hands again**
+  * _command mode off_
  
 #### Audio
-* Mute the microphone: Show flat palm of one hand
-* Un-mute the microphone: Make an upward fist
-* Increase the volume: Index finger up (and thumb to the side)
-* Decrease the volume: Index finger down (and thumb to the side)
+* Mute the microphone: 
+  * **Show flat palm of one hand**
+  * _mute_ or _toggle mute_ when unmuted 
+* Un-mute the microphone: 
+  * **Make an upward fist**
+  * _unmute_ or _toggle mute_ when muted 
+* Increase the volume: 
+  * **Index finger up (and thumb to the side)**
+  * _volume up_
+* Decrease the volume: 
+  * **Index finger down (and thumb to the side)**
+  * _volume down_
  
 #### Video
-* Black out the Camera: Point fist at the camera
-* Return to Webcam display: Show upwards fist (same as un-mute)
+* Black out the Camera: 
+  * **Point fist at the camera**
+  * _camera off_
+* Return to Webcam display: 
+  * **Show upwards fist (same as un-mute)**
+  * _camera on_
  
 #### Background
-* Change the Background one-forward: Fist with thumb to one side
-* Change the Background one-backward: Fist with thumb to the other side
+* Change the Background one-forward: 
+  * **Fist with thumb to one side**
+  * _background right_
+* Change the Background one-backward: 
+  * **Fist with thumb to the other side**
+  * _background left_
+* Change the Background to a random one:
+  * _change background_
+
 
 #### Voting
-* Begin a voting process: Victory sign
+* Begin a voting process: 
+  * **Victory sign**
+  * _voting on_
 * Set the number of options: 
-   * Indicate yes/no question: Thumns-up sign or
-   * Show number of fingers [1..5]
-* Confirm the number of options displayed: OK sign
+   * Indicate yes/no question: 
+     * **Thumns-up sign**
+   * **Show number of fingers [1..5]**
+* Confirm the number of options displayed: 
+  * **OK sign**
 
 --- Explain the options to the group ---
 
-* Start the voting: Victory sign
+* Start the voting: 
+  * **Victory sign**
+  * _voting on_
 * Cast your vote: 
-   * In case of yes/no: Show thumbs-up or
-   * In case of more options: Show number with your fingers
-* Confirm vote: OK sign
+   * In case of yes/no: 
+     * **Show thumbs-up*
+     * _I vote yes_ or _I vote no_
+   * In case of more options: 
+     * **Show number with your fingers**
+     * _option [1..5]_ or _option [A..E]_
+* Confirm vote: 
+  * **OK sign**
 
-[not implemented] 
+[not implemented]
 --- Once all participants have voted, display the result on all screens ---
 
 ### Mood Server

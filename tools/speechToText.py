@@ -11,13 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Google Cloud Speech API sample application using the streaming API.
-NOTE: This module requires the dependencies `pyaudio` and `termcolor`.
-To install using pip:
-    pip install pyaudio
-    pip install termcolor
-"""
 import threading
 import time
 
