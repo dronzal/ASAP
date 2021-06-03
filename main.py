@@ -597,8 +597,8 @@ class ASAP:
         #self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,))
         #self.virtualCam_thread.start()
 
-        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
-        self.websocket_thread.start()
+        #self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
+        #self.websocket_thread.start()
 
         while self.started:
             # Get time, this for calculating the total frames per second.
@@ -607,7 +607,7 @@ class ASAP:
             # Init an async threadPool and wait if the childThreads are finished to go further.
             with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
                 executor.submit(self.bgMask.runTime, self.frame)
-                executor.submit(self.visionMd.runTime, self.frame)
+                #executor.submit(self.visionMd.runTime, self.frame)
                 executor.submit(self.gesture.runTime, self.frame)
 
             if not isinstance(self.visionMd.bucket, type(None)):
