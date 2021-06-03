@@ -607,7 +607,7 @@ class ASAP:
             # Init an async threadPool and wait if the childThreads are finished to go further.
             with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
                 executor.submit(self.bgMask.runTime, self.frame)
-                #executor.submit(self.visionMd.runTime, self.frame)
+                executor.submit(self.visionMd.runTime, self.frame)
                 executor.submit(self.gesture.runTime, self.frame)
 
             if not isinstance(self.visionMd.bucket, type(None)):
