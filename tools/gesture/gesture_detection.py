@@ -52,7 +52,7 @@ class GestureDetection:
     '''
     def __init__(self, log):
         self.log = log
-        self.log.debug("GestureDetection init")
+        self.log.debug("Init")
 
         # Init MediaPipe parameters
         self.mp_max_num_hands = 1
@@ -588,7 +588,7 @@ class GestureDetection:
                     thumb_up, recognized_sum, recognized_hand_gesture = self.recognize_hand_gesture(image, cx, cy, hand_landmarks, handedness)
                     counter += 1
                 self.bucket = tmp
-                self.log.info(f"GestureDetection runtime result {tmp}")
+                self.log.info(f"Result {tmp}")
             else:
                 self.point_history.append([0, 0])  # No hand visible on the screen
 
@@ -599,4 +599,4 @@ class GestureDetection:
             self.debug_frame = debug_image
             self.time = round((time.time() - startTime) * 1000)
         except Exception as e:
-            self.log.warning(f"GestureDetection runtime {e}")
+            self.log.warning(f"{e}")

@@ -11,7 +11,7 @@ class MoodDetection:
     def __init__(self, log, model="models/fer", cascadeClassifier="models/haarcascade_frontalface_default"):
 
         self.log = log
-        self.log.debug("MoodDetection init")
+        self.log.debug("Init")
 
         model = os.path.join(os.path.dirname(__file__), model)
         model_name = model
@@ -57,7 +57,7 @@ class MoodDetection:
             gray_img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray_img = np.uint8(gray_img)
             faces_detected = self.face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
-            self.log.debug(f"Mooddetection faces detected: {len(faces_detected)}")
+            self.log.debug(f"Faces detected: {len(faces_detected)}")
             for (x, y, w, h) in faces_detected:
                 roi_gray = gray_img[y:y + w, x:x + h]  # cropping region of interest i.e. face area from  image
                 roi_gray = cv2.resize(roi_gray, (48, 48))
@@ -75,4 +75,4 @@ class MoodDetection:
                 }
                 self.time = round((time.time()-startTime)*1000)
         except Exception as e:
-            self.log.warning(f"MoodDetection Runtime {e}")
+            self.log.warning(f"{e}")

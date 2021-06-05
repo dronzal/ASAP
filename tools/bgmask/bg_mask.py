@@ -9,7 +9,7 @@ class BackgroundMask:
 
     def __init__(self, log, model="models/segmentation/deconv_bnoptimized_munet.h5", bg_im_path="bg_im/"):
         self.log = log
-        self.log.debug("BackgroundMask init")
+        self.log.debug("init")
         # load model
         try:
             model = os.path.join(os.path.dirname(__file__), model)
@@ -43,7 +43,7 @@ class BackgroundMask:
 
         files = os.listdir(folder)
         file_list = [file for file in files if file.endswith('jpg')]
-        self.log.debug(f"BackgroundMask, background file list: {file_list}")
+        self.log.debug(f"background file list: {file_list}")
         return file_list
 
     def change_bgd(self, idx=0):
@@ -59,7 +59,7 @@ class BackgroundMask:
 
         if idx <= len(self.bg_list):
             bg_location = os.path.join(self.bg_path, (self.bg_list[idx]))
-            self.log.debug(f"BackgroundMask, background file: {bg_location}")
+            self.log.debug(f"background file: {bg_location}")
 
             self.bg = cv2.resize(cv2.imread(bg_location), (self.tgt_size, self.tgt_size))
             self.bg = self.cvtColor(self.bg)
@@ -102,4 +102,4 @@ class BackgroundMask:
             # Drop result in the bucket
             self.bucket = frame[..., ::-1]
         except Exception as e:
-            self.log.warnig(f"BackgroundMask, runtime, {e}")
+            self.log.warnig(f"{e}")

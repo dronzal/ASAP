@@ -200,6 +200,7 @@ class SpeechToText:
 
             if result.is_final:
                 self.bucket = str(transcript).lstrip().lower()
+                self.log.debug(f"{result} self.bucket")
                 stream.is_final_end_time = stream.result_end_time
                 stream.last_transcript_was_final = True
             else:
@@ -249,9 +250,4 @@ class SpeechToText:
 
                     stream.new_stream = True
         except Exception as e:
-            self.log.warning(f"STT runtime {e}")
-
-
-if __name__ == "__main__":
-    stt = SpeechToText()
-    stt.start()
+            self.log.warning(f"{e}")

@@ -104,15 +104,11 @@ class ASAP:
                               5: {"emotion": "SURPRISE"},
                               6: {"emotion": "NEUTRAL"}}
 
-    def debug(self, tmp):
-        self.log.debug(tmp)
-
     def virtualCam(self, input_q):
         """
         VirtualCam function
         :return:
         """
-        func_name = inspect.stack()[0][3]
         try:
             with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
                 while self.started:
@@ -121,15 +117,15 @@ class ASAP:
                         if isinstance(data, np.ndarray):
                             data = data[..., ::-1]
                             cam.send(data)
-                            self.debug(f"{func_name} sendFrame")
+                            self.log.debug("virtualCam sendFrame")
                             cam.sleep_until_next_frame()
                         else:
-                            self.log.warning(f"{func_name} Type virtualcam frame: {type(data)}")
+                            self.log.warning(f"Type virtualcam frame: {type(data)}")
                             time.sleep(0.1)
                     except Exception as e:
-                        self.log.warning(f"{func_name} runtime-loop {e}")
+                        self.log.warning(f"{e}")
         except Exception as e:
-            self.log.warning(f"{func_name} {e}")
+            self.log.warning(f"{e}")
 
     def actionhandler(self):
         """
@@ -167,7 +163,7 @@ class ASAP:
                     self.last_time_action = t
                 time.sleep(self.while_delay)
             except Exception as e:
-                self.log.warning(f"actionhandler {e}")
+                self.log.warning(f"{e}")
 
     def stt_actions(self, tmp: str):
         """
@@ -185,9 +181,8 @@ class ASAP:
         :param tmp:
         :return:
         """
-        func_name = inspect.stack()[0][3]
         self.stt_result = tmp
-        self.debug(f"{func_name} stt result: {self.stt_result}")
+        self.log.debug(f"stt result: {self.stt_result}")
 
         self.transcript_done = False
         self.websocket_q.put({
@@ -458,7 +453,7 @@ class ASAP:
         Functions that stops en close the application
         """
         self.started = False
-        self.debug("Exit")
+        self.log.debug("Exit")
         sys.exit()
 
     def videoCap(self):
@@ -467,15 +462,15 @@ class ASAP:
         Always run this in a thread.
         :return:
         """
-        self.log.debug("ASAP VideoCap started")
+        self.log.debug("started")
         delay = 1 / self.frame_capture_fps
         last = 0
         try:
             cap = cv2.VideoCapture(0)
-            self.log.info("ASAP videoCap() videoCapture(0)")
+            self.log.info("videoCapture(0)")
         except Exception as e:
             cap = cv2.VideoCapture(cv2.CAP_DSHOW)
-            self.log.warning(f"VideoCap {e}")
+            self.log.warning(f"cv.VideoCapture {e}")
         while self.started:
             try:
                 timeNow = time.time()
@@ -484,7 +479,7 @@ class ASAP:
                     last = timeNow
                 time.sleep(delay / 5)
             except Exception as e:
-                self.log.warning(f"ASAP videoCap {e}")
+                self.log.warning(f"while loop {e}")
 
     def videoShow(self):
         """
@@ -505,24 +500,23 @@ class ASAP:
                 self.log.warning(f"ASAP videoShow {e}")
 
     def websocket(self, in_q: queue.Queue):
-        func_name = inspect.stack()[0][3]
         while self.started:
             async def start_ws():
                 try:
                     async with websockets.connect("ws://84.196.102.201:6789") as websocket:
-                        self.debug(f"{func_name} connected")
+                        self.log.debug(f"connected")
                         while True:
                             while in_q.not_empty:
                                 data = in_q.get()
                                 msg = json.dumps(data)
-                                self.debug(f"{func_name} About to send {msg}")
+                                self.log.debug(f"About to send {msg}")
                                 await websocket.send(msg)
                                 res = await websocket.recv()
-                                self.debug(f"{func_name} Res:  {res}")
+                                self.log.debug(f"Res:  {res}")
                                 time.sleep(self.while_delay)
                             time.sleep(0.2)
                 except Exception as e:
-                    self.log.warning(f"{func_name} {e}")
+                    self.log.warning(f"{e}")
                     time.sleep(1)
 
             try:
@@ -530,7 +524,7 @@ class ASAP:
                 asyncio.set_event_loop(loop)
                 asyncio.get_event_loop().run_until_complete(start_ws())
             except Exception as e:
-                self.log.warning(f"ASAP {func_name} {e}")
+                self.log.warning(f"{e}")
             time.sleep(1)
         time.sleep(1)
 
@@ -630,8 +624,7 @@ class ASAP:
         ASAP runtime. Runs forever if self.started is True.
         :return:
         """
-        func_name = inspect.stack()[0][3]
-        self.debug(f"{func_name} init runtime")
+        self.log.debug(f"Init runtime")
         # Init a thread for the Speech to Text service, and pass the queue.
         self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock, self.log),
                                  name="ASAP_stt", daemon=True)
@@ -665,7 +658,7 @@ class ASAP:
                     executor.submit(self.visionMd.runTime, self.frame)
                     executor.submit(self.gesture.runTime, self.frame)
             except Exception as e:
-                self.log.warning(f"{func_name} {e}")
+                self.log.warning(f"ThreadPoolExcecutor {e}")
 
             if not isinstance(self.visionMd.bucket, type(None)):
                 self.result_queue.put({"mood": self.visionMd.bucket})
@@ -784,7 +777,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename=f"logs/{dt_string}.log",
                         level=args.get("level"),
                         datefmt='%d-%m-%y %H:%M:%S',
-                        format='%(levelname)s %(asctime)s %(message)s',
+                        format='%(levelname)s %(asctime)s %(module)s %(funcName)s | %(message)s',
                         )
 
     # init main app
