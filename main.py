@@ -429,7 +429,7 @@ class ASAP:
             self.result_frame = self.bgMask_frame
 
         if self.command_mode:
-            self.result_frame = self.print_rect(self.result_frame)
+            self.result_frame = self.print_rect(self.result_frame, "green")
 
         if self.mood() is not None:
             draw_mood()
