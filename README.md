@@ -8,28 +8,29 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 
 ## Installation
 
+## Installation
+
 First: 
-```shell
+```bash
 # installing venv 
 python3 -m pip install --user virtualenv
 # creating virtual env
 python3 -m venv env
 # activating virtual env
-# ------FOR LINUX/MAC---------#
-source env/bin/activate
-# -------FOR WINDOWS----------#
-.\env\Scripts\activate
-
-python3 -m pip install --usere -r requirements.txt
+  # ------FOR LINUX/MAC---------#
+    source env/bin/activate
+  # -------FOR WINDOWS----------#
+    .\env\Scripts\activate
+# install requirements
+python3 -m pip install --user -r requirements.txt
 ```
 
-Then open main.py in IDE
+```bash
+# View args:
+python3 main.py -h 
 
-```python
-# Make sure that the google credentials are correct.
-asap = ASAP(ws_name="YOUR NAME")
-# And start the ASAP application
-asap.start()
+# Run app:
+python3 main.py
 ```
 
 ## Application
