@@ -33,6 +33,7 @@ import inspect
 from datetime import datetime as d
 import os
 
+
 class ASAP:
 
     def __init__(self, ws_name, logging, debug=False, cam_width=640, cam_height=480):
@@ -740,9 +741,12 @@ if __name__ == "__main__":
     # load args
     args = load_args()
 
+    # init a dateTime string
     date = d.now()
     dt_string = date.strftime("%Y%m%d_%H%M%S")
 
+    if not os.path.exists("logs/"):
+        os.makedirs("logs")
     # init a logfile
     logging.basicConfig(filename=f"logs/{dt_string}.log",
                         level=logging.DEBUG,
