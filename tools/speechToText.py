@@ -157,21 +157,6 @@ class SpeechToText:
 
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = google_credentials_file
 
-    def start(self):
-        if self.started:
-            print("STT thread already started.")
-        else:
-            print("Starting STT")
-            self.started = True
-            self.thread = threading.Thread(target=self.runTime, name='SttThread', daemon=True)
-            self.thread.start()
-
-    def stop(self):
-        if not self.started:
-            print("stt  thread already stopped.")
-        else:
-            self.started = False
-
     def listen_print_loop(self, responses, stream, queue, lock):
         """"Iterates through server responses and prints them.
 
@@ -220,48 +205,51 @@ class SpeechToText:
             else:
                 stream.last_transcript_was_final = False
 
-    def runTime(self, queue, lock):
+    def runTime(self, queue, lock, log):
         """start bidirectional streaming from microphone input to speech API"""
+        self.log = log
+        try:
+            client = speech.SpeechClient()
+            config = speech.RecognitionConfig(
+                encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+                sample_rate_hertz=SAMPLE_RATE,
+                language_code="en-US",
+                max_alternatives=1,
+            )
 
-        client = speech.SpeechClient()
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=SAMPLE_RATE,
-            language_code="en-US",
-            max_alternatives=1,
-        )
+            streaming_config = speech.StreamingRecognitionConfig(
+                config=config, interim_results=True
+            )
 
-        streaming_config = speech.StreamingRecognitionConfig(
-            config=config, interim_results=True
-        )
+            mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
 
-        mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+            with mic_manager as stream:
 
-        with mic_manager as stream:
+                while not stream.closed:
+                    stream.audio_input = []
+                    audio_generator = stream.generator()
 
-            while not stream.closed:
-                stream.audio_input = []
-                audio_generator = stream.generator()
+                    requests = (
+                        speech.StreamingRecognizeRequest(audio_content=content)
+                        for content in audio_generator
+                    )
 
-                requests = (
-                    speech.StreamingRecognizeRequest(audio_content=content)
-                    for content in audio_generator
-                )
+                    responses = client.streaming_recognize(streaming_config, requests)
 
-                responses = client.streaming_recognize(streaming_config, requests)
+                    # Now, put the transcription responses to use.
+                    self.listen_print_loop(responses, stream, queue, lock)
 
-                # Now, put the transcription responses to use.
-                self.listen_print_loop(responses, stream, queue, lock)
+                    if stream.result_end_time > 0:
+                        stream.final_request_end_time = stream.is_final_end_time
+                    stream.result_end_time = 0
+                    stream.last_audio_input = []
+                    stream.last_audio_input = stream.audio_input
+                    stream.audio_input = []
+                    stream.restart_counter = stream.restart_counter + 1
 
-                if stream.result_end_time > 0:
-                    stream.final_request_end_time = stream.is_final_end_time
-                stream.result_end_time = 0
-                stream.last_audio_input = []
-                stream.last_audio_input = stream.audio_input
-                stream.audio_input = []
-                stream.restart_counter = stream.restart_counter + 1
-
-                stream.new_stream = True
+                    stream.new_stream = True
+        except Exception as e:
+            self.log.warning(f"STT runtime {e}")
 
 
 if __name__ == "__main__":
