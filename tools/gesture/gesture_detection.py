@@ -91,7 +91,9 @@ class GestureDetection:
 
         self.command_mode = None
         self.command = ""
-
+        self.command_off = ""
+        self.command_time = None
+        self.command_time_max = 10
 
     def runTime(self, frame):
         """ Runtime execution
@@ -103,8 +105,10 @@ class GestureDetection:
             # Get the FPS rate
             self.fps = self.cvFpsCalc.get()
             frame = np.uint8(frame)
+
             # Set the start time
             startTime = time.time()
+
             # Image manipulation
             image = cv.flip(frame, 1)  # Flip image
             debug_image = copy.deepcopy(image)  # Copy image
@@ -115,6 +119,14 @@ class GestureDetection:
             results = self.hands.process(image)
             image.flags.writeable = True
 
+            # Send command mode off when time limit reached
+            if not isinstance(self.command_time, type(None)):
+                if self.command_mode:
+                    if (time.time() - self.command_time > self.command_time_max):
+                        self.command_time = None
+                        self.command_mode = False
+                        self.command_off = "Command mode off"
+
             # When hand detected:
             if not isinstance(results.multi_hand_landmarks, type(None)):
                 tmp = {}
@@ -122,13 +134,10 @@ class GestureDetection:
 
                 if len(results.multi_hand_landmarks) == 2:
                     self.command_mode = True
-                else:
-                    self.command_mode = False
-
-                if self.command_mode:
+                    self.command_time = time.time()
                     self.command = "Command mode on"
-
-                self.command_mode = False
+                else:
+                    self.command = ""
 
                 for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
                                                       results.multi_handedness):
@@ -168,9 +177,10 @@ class GestureDetection:
                     thumb, recognized_sum = self.recognize_hand_gesture(image, cx, cy, hand_landmarks, handedness)
 
                     tmp[counter] = {"gesture": [self.command,
+                                                self.command_off,
+                                                self.keypoint_classifier_labels[hand_sign_id],
                                                 recognized_sum,
                                                 thumb,
-                                                self.keypoint_classifier_labels[hand_sign_id]
                                                 #self.point_history_classifier_labels[most_common_fg_id[0][0]]
                                                 ]}
 
@@ -188,6 +198,7 @@ class GestureDetection:
                 self.bucket = tmp
                 self.log.info(f"Result {tmp}")
                 self.command = ""
+                self.command_off = ""
             else:
                 self.point_history.append([0, 0])  # No hand visible on the screen
 

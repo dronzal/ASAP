@@ -4,6 +4,7 @@ ASAP Application
 This file is part of the ASAP Interactive Videoconferencing AI/ML Tools
 Copyright 2021, ASAP team, authored by Arne Depuydt
 """
+
 from silence_tensorflow import silence_tensorflow
 silence_tensorflow()
 from collections import Counter, deque
@@ -269,49 +270,77 @@ class ASAP:
         if re.search(r"\b(option 1|option A)\b", tmp, re.I):
             self.vote_text = "A"
 
+
+    def toggle_command_mode(self, activate):
+        if activate:
+            self.command_mode = True
+        else:
+            self.command_mode = False
+        self.transcript_mode_on = False
+        self.transcript_mode_off = False
+        self.change_bgMask = False
+        self.change_up_bgMask = False
+        self.change_down_bgMask = False
+        self.set_black_bg = False
+        self.unset_black_bg = False
+        self.mute = False
+        self.unmute = False
+        self.show_gesture_debug = False
+
     def gesture_action(self, tmp: dict):
         """
         This is the action function for the gesture recognition
 
-        The available actions are
-            - Command Mode
-            Move into command mode: Show two hands to the webcam
-            Cancel command mode: Show two hands again
-            - Audio
-            Mute the microphone: Show flat palm of one hand
-            Un-mute the microphone: Make an upward fist
-            Increase the volume: Index finger up (and thumb to the side)
-            Decrease the volume: Index finger down (and thumb to the side)
-            - Video
-            Black out the Camera: Point fist at the camera
-            Return to Webcam display: Show upwards fist (same as un-mute)
-            - Background
-            Change the Background one-forward: Fist with thumb to one side
-            Change the Background one-backward: Fist with thumb to the other side
-            - Voting
-            Begin a voting process: Victory sign
-            Set the number of options:
-                Indicate yes/no question: Thumns-up sign or
-                Show number of fingers [1..5]
-            Confirm the number of options displayed: OK sign
-            --- Explain the options to the group ---
-            Start the voting: Victory sign
-            Cast your vote:
-                In case of yes/no: Show thumbs-up or
-                In case of more options: Show number with your fingers
-            Confirm vote: OK sign
 
-        :param tmp:
-        :return:
         """
         for key in tmp.keys():
             li = tmp[key]['gesture']
-            self.gesture_result = ' '.join([str(elem) for elem in li])
+            self.gesture_result = ' | '.join([str(elem) for elem in li])
 
-        if 'mute' in self.gesture_result:
-            pass
-            # self.mute = True
-            # print("muted")
+        # Only one action per cycle
+        action = False
+
+        if re.search(r"\bCommand mode on\b", self.gesture_result, re.I):
+            if action: pass
+            self.toggle_command_mode(True)
+            action = True
+
+        if re.search(r"\bCommand mode off\b", self.gesture_result, re.I):
+            if action: pass
+            self.toggle_command_mode(False)
+            action = True
+
+        if re.search(r"\bOK\b", self.gesture_result, re.I):
+            if action: pass
+            self.toggle_command_mode(False)
+            action = True
+
+        if re.search(r"\b(Background-Left)\b", self.gesture_result, re.I):
+            if action: pass
+            self.change_up_bgMask = True
+            action = True
+
+        if re.search(r"\b(Background-Right)\b", self.gesture_result, re.I):
+            if action: pass
+            self.change_down_bgMask = True
+            action = True
+
+        if re.search(r"\b(Camera-Off)\b", self.gesture_result, re.I):
+            if action: pass
+            self.set_black_bg = True
+            action = True
+
+        if re.search(r"\b(Mute)\b", self.gesture_result, re.I):
+            if action: pass
+            self.mute = True
+            action = True
+
+        if re.search(r"\b(Unmute/Camera-On)\b", self.gesture_result, re.I):
+            if action: pass
+            self.unset_black_bg = True
+            self.unmute = True
+            action = True
+
 
     def build_actions(self):
         """
@@ -805,7 +834,8 @@ if __name__ == "__main__":
     # Start the main thread
     asap_thread.start()
     while asap.started:
+        #print(asap.gesture_result)
         try:
-            time.sleep(2)
+            time.sleep(1)
         except KeyboardInterrupt:
             asap.stop()
