@@ -50,7 +50,9 @@ class GestureDetection:
     ''' Gesture Detection
     ...
     '''
-    def __init__(self):
+    def __init__(self, log):
+        self.log = log
+        self.log.debug("GestureDetection init")
 
         # Init MediaPipe parameters
         self.mp_max_num_hands = 1
@@ -77,14 +79,20 @@ class GestureDetection:
         self.point_history_classifier = phc.PointHistoryClassifier()
         path1 = os.path.join(os.path.dirname(__file__), 'model/keypoint_classifier/keypoint_classifier_label.csv')
         # Read the labels stored in the respective csv files
-        with open(path1, encoding='utf-8-sig') as f:
-            self.keypoint_classifier_labels = csv.reader(f)
-            self.keypoint_classifier_labels = [row[0] for row in self.keypoint_classifier_labels]
+        if os.path.exists(path1):
+            with open(path1, encoding='utf-8-sig') as f:
+                self.keypoint_classifier_labels = csv.reader(f)
+                self.keypoint_classifier_labels = [row[0] for row in self.keypoint_classifier_labels]
+        else:
+            raise Exception(f"Error load keypoint_classifier_label failed.\nGiven file location:\n{path1}")
 
         path2 = os.path.join(os.path.dirname(__file__), 'model/point_history_classifier/point_history_classifier_label.csv')
-        with open(path2, encoding='utf-8-sig') as f:
-            self.point_history_classifier_labels = csv.reader(f)
-            self.point_history_classifier_labels = [row[0] for row in self.point_history_classifier_labels]
+        if os.path.exists(path2):
+            with open(path2, encoding='utf-8-sig') as f:
+                self.point_history_classifier_labels = csv.reader(f)
+                self.point_history_classifier_labels = [row[0] for row in self.point_history_classifier_labels]
+        else:
+            raise Exception(f"Error load point_history_classifier_label failed.\nGiven file location:\n{path2}")
 
         # Create the point_history deque
         self.history_length = 16
@@ -94,22 +102,6 @@ class GestureDetection:
 
         # Create the frames per second FPS rate utils object
         self.cvFpsCalc = cvfpscalc.CvFpsCalc(buffer_len=10)
-
-    def start(self):
-        if self.started:
-            print("Gesture detection thread already started.")
-        else:
-            print("Starting gesture detection")
-            self.started = True
-            self.thread = threading.Thread(target=self.runTime, name='GestureThread', daemon=True)
-            self.thread.start()
-
-    def stop(self):
-        if not self.started:
-            print("Gesture detection thread already stopped.")
-        else:
-            self.started = False
-
 
     @staticmethod
     def print_rect(image, color):
@@ -532,136 +524,79 @@ class GestureDetection:
         :param self:
         :return:
         """
-        # Get the FPS rate
-        self.fps = self.cvFpsCalc.get()
-        # Set the start time
-        startTime = time.time()
-        # Image manipulation
-        image = cv.flip(frame, 1)  # Flip image
-        debug_image = copy.deepcopy(image)  # Copy image
-        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)  # Change to RGB for Mediapipe
+        try:
+            # Get the FPS rate
+            self.fps = self.cvFpsCalc.get()
+            frame = np.uint8(frame)
+            # Set the start time
+            startTime = time.time()
+            # Image manipulation
+            image = cv.flip(frame, 1)  # Flip image
+            debug_image = copy.deepcopy(image)  # Copy image
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)  # Change to RGB for Mediapipe
 
-        # Process image with Mediapipe hands model
-        image.flags.writeable = False  # Set writeable to False to speed up process
-        results = self.hands.process(image)
-        image.flags.writeable = True
+            # Process image with Mediapipe hands model
+            image.flags.writeable = False  # Set writeable to False to speed up process
+            results = self.hands.process(image)
+            image.flags.writeable = True
 
-        # When hand detected:
-        if not isinstance(results.multi_hand_landmarks, type(None)):
-            tmp = {}
-            counter = 0
-            for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
-                                                  results.multi_handedness):
+            # When hand detected:
+            if not isinstance(results.multi_hand_landmarks, type(None)):
+                tmp = {}
+                counter = 0
+                for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
+                                                      results.multi_handedness):
 
-                # Calculate center of palm
-                cx, cy = self.calc_palm_moment(debug_image, hand_landmarks)
-                # Calculate bounding rectangle of hand
-                brect = self.calc_bounding_rect(debug_image, hand_landmarks)
-                # Create a list from the detected landmarks
-                landmark_list = self.calc_landmark_list(debug_image, hand_landmarks)
-                # Pre-process landmark list and point history list
-                pre_processed_landmark_list = self.pre_process_landmark(landmark_list)
-                pre_processed_point_history_list = self.pre_process_point_history(debug_image, self.point_history)
-                # Run keypoint_classifier model and write to point history deque if hand sign id = 2
-                hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
-                if hand_sign_id == 2:  # Index finger raised
-                    self.point_history.append(landmark_list[8])
-                else:
-                    self.point_history.append([0, 0])
-                # Run point_history classifier model (when 32 values in preprocessed list = full 16 history points)
-                finger_gesture_id = 0
-                point_history_len = len(pre_processed_point_history_list)
-                if point_history_len == (self.history_length * 2):
-                    finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
+                    # Calculate center of palm
+                    cx, cy = self.calc_palm_moment(debug_image, hand_landmarks)
+                    # Calculate bounding rectangle of hand
+                    brect = self.calc_bounding_rect(debug_image, hand_landmarks)
+                    # Create a list from the detected landmarks
+                    landmark_list = self.calc_landmark_list(debug_image, hand_landmarks)
+                    # Pre-process landmark list and point history list
+                    pre_processed_landmark_list = self.pre_process_landmark(landmark_list)
+                    pre_processed_point_history_list = self.pre_process_point_history(debug_image, self.point_history)
+                    # Run keypoint_classifier model and write to point history deque if hand sign id = 2
+                    hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
+                    if hand_sign_id == 2:  # Index finger raised
+                        self.point_history.append(landmark_list[8])
+                    else:
+                        self.point_history.append([0, 0])
+                    # Run point_history classifier model (when 32 values in preprocessed list = full 16 history points)
+                    finger_gesture_id = 0
+                    point_history_len = len(pre_processed_point_history_list)
+                    if point_history_len == (self.history_length * 2):
+                        finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
 
-                # Append result to finger_gesture history deque and select most common recognized gesture
-                self.finger_gesture_history.append(finger_gesture_id)
-                most_common_fg_id = Counter(self.finger_gesture_history).most_common()
+                    # Append result to finger_gesture history deque and select most common recognized gesture
+                    self.finger_gesture_history.append(finger_gesture_id)
+                    most_common_fg_id = Counter(self.finger_gesture_history).most_common()
 
-                # Draw landmarks, bounding rectangle and information
-                debug_image = self.draw_landmarks(debug_image, cx, cy, landmark_list, handedness)
-                debug_image = self.draw_bounding_rect(self.mp_use_brect, debug_image, brect)
-                debug_image = self.draw_info_text(
-                    debug_image,
-                    brect,
-                    self.keypoint_classifier_labels[hand_sign_id],
-                    self.point_history_classifier_labels[most_common_fg_id[0][0]],
-                )
-                tmp[counter] = {"gesture": [self.keypoint_classifier_labels[hand_sign_id],
-                                        self.point_history_classifier_labels[most_common_fg_id[0][0]]]}
+                    # Draw landmarks, bounding rectangle and information
+                    debug_image = self.draw_landmarks(debug_image, cx, cy, landmark_list, handedness)
+                    debug_image = self.draw_bounding_rect(self.mp_use_brect, debug_image, brect)
+                    debug_image = self.draw_info_text(
+                        debug_image,
+                        brect,
+                        self.keypoint_classifier_labels[hand_sign_id],
+                        self.point_history_classifier_labels[most_common_fg_id[0][0]],
+                    )
+                    tmp[counter] = {"gesture": [self.keypoint_classifier_labels[hand_sign_id],
+                                            self.point_history_classifier_labels[most_common_fg_id[0][0]]]}
 
-                # Test simple number recognition directly with Mediapipe
-                thumb_up, recognized_sum, recognized_hand_gesture = self.recognize_hand_gesture(image, cx, cy, hand_landmarks, handedness)
-                counter += 1
-            self.bucket = tmp
+                    # Test simple number recognition directly with Mediapipe
+                    thumb_up, recognized_sum, recognized_hand_gesture = self.recognize_hand_gesture(image, cx, cy, hand_landmarks, handedness)
+                    counter += 1
+                self.bucket = tmp
+                self.log.info(f"GestureDetection runtime result {tmp}")
+            else:
+                self.point_history.append([0, 0])  # No hand visible on the screen
 
-        else:
-            self.point_history.append([0, 0])  # No hand visible on the screen
+            # Anyway draw point history and regular information when index finger is shown
+            debug_image = self.draw_point_history(debug_image, self.point_history)
+            debug_image = self.draw_info(debug_image, self.fps)
 
-        # Anyway draw point history and regular information when index finger is shown
-        debug_image = self.draw_point_history(debug_image, self.point_history)
-        debug_image = self.draw_info(debug_image, self.fps)
-
-        self.debug_frame = debug_image
-        self.time = round((time.time() - startTime) * 1000)
-
-
-
-class Capture:
-    def __init__(self):
-        self.cap = cv.VideoCapture(0)
-        self.cap.set(3, 1280)  # Setting webcam's image width
-        self.cap.set(4, 720)  # Setting webcam's image height
-        self.started = False
-        self.bucket = None
-        self.thread = None
-
-    def start(self):
-        if self.started:
-            print(f"{Capture.__qualname__} thread already started.")
-        else:
-            self.started = True
-            self.thread = threading.Thread(target=self.runTime, name='CaptureThread', daemon=True)
-            self.thread.start()
-
-    def stop(self):
-        if not self.started:
-            print("Capture thread already stopped.")
-        else:
-            self.started = False
-
-    def runTime(self):
-        setproctitle.setproctitle(threading.currentThread().name)
-        while self.started:
-            succes, frame = self.cap.read()
-            if succes:
-                self.bucket = frame
-
-
-if __name__ == "__main__":
-    # cam = pyvirtualcam.Camera(width=1280, height=720, fps=30)
-    gesture = GestureDetection()
-    gesture.start()
-    capture = Capture()
-    capture.start()
-    running = True
-    while running:
-        if not isinstance(gesture.bucket_a, type(None)):
-            print(gesture.bucket_a)
-            gesture.bucket_a = None
-
-        if isinstance(capture.bucket, np.ndarray):
-            gesture.frame = capture.bucket
-
-        if isinstance(gesture.bucket, np.ndarray):
-            img = gesture.bucket
-
-            cv.imshow('Gesture', img)
-
-            img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-            #img = cv.flip(img, 1)
-            # cam.send(img)
-            # cam.sleep_until_next_frame()
-
-            if cv.waitKey(1) & 0xFF == ord('q'):
-                sys.exit()
+            self.debug_frame = debug_image
+            self.time = round((time.time() - startTime) * 1000)
+        except Exception as e:
+            self.log.warning(f"GestureDetection runtime {e}")

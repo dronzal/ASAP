@@ -8,34 +8,11 @@ import os
 
 class MoodDetection:
 
-    def __init__(self, log, emotions_dict=None, model="models/fer", cascadeClassifier="models/haarcascade_frontalface_default"):
+    def __init__(self, log, model="models/fer", cascadeClassifier="models/haarcascade_frontalface_default"):
 
         self.log = log
         self.log.debug("MoodDetection init")
-        # Check if given emotions_dict is dict type
-        if isinstance(emotions_dict, dict):
-            for key in emotions_dict.keys():
-                # Uppercase the emotion
-                emotions_dict[key]['emotion'] = str(emotions_dict.get(key).get('emotion')).upper()
-        else:
-            emotions_dict = {0: {"emotion": "ANGRY",
-                                 "emoji": "😠"},
-                             1: {"emotion": "DISGUST",
-                                 "emoji":  "🤢"},
-                             2: {"emotion": "FEAR",
-                                 "emoji": "😱"},
-                             3: {"emotion": "HAPPY",
-                                 "emoji": "😃"},
-                             4: {"emotion": "SAD",
-                                 "emoji": "😞"},
-                             5: {"emotion": "SURPRISE",
-                                 "emoji": "😲"},
-                             6: {"emotion": "NEUTRAL",
-                                "emoji": "😐"}}
 
-        self.emotions_dict = emotions_dict
-
-        # Drop extension
         model = os.path.join(os.path.dirname(__file__), model)
         model_name = model
 
@@ -65,7 +42,6 @@ class MoodDetection:
         else:
             raise Exception(f"CascadeClassifier not found!\nGiven: {cascadeClassifier}.xml")
 
-
         self.frame = None
         self.bucket = None
         self.started = False
@@ -76,7 +52,6 @@ class MoodDetection:
 
     def runTime(self, frame):
         try:
-            self.log.debug(f"Mooddetection runtime incomming frame: {type(frame)}")
             self.bucket = None
             startTime = time.time()
             gray_img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

@@ -4,7 +4,8 @@ ASAP Application
 This file is part of the ASAP Interactive Videoconferencing AI/ML Tools
 Copyright 2021, ASAP team, authored by Arne Depuydt
 """
-
+from silence_tensorflow import silence_tensorflow
+silence_tensorflow()
 from collections import Counter, deque
 from datetime import datetime
 from datetime import datetime as d
@@ -35,15 +36,15 @@ import websockets
 
 class ASAP:
 
-    def __init__(self, ws_name, logging, debug=False, cam_width=640, cam_height=480):
+    def __init__(self, ws_name, logging, cam_width=640, cam_height=480):
 
         self.ws_name = ws_name
         self.log = logging
 
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
-        self.bgMask = bgm.BackgroundMask()
-        self.visionMd = MD.MoodDetection(self.log)
-        self.gesture = gesture_detection.GestureDetection()
+        self.bgMask = bgm.BackgroundMask(log=self.log)
+        self.visionMd = MD.MoodDetection(log=self.log)
+        self.gesture = gesture_detection.GestureDetection(log=self.log)
 
         self.cam_width = cam_width
         self.cam_height = cam_height
@@ -73,9 +74,8 @@ class ASAP:
         self.voting_mode = True
         self.vote_text = ""
 
-        self._debug = debug
         self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3), dtype=np.float32)
-        self.bgMask_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3),dtype=np.float32)
+        self.bgMask_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3), dtype=np.float32)
         self.gesture_result = None
         self.timings = None
 
@@ -105,8 +105,7 @@ class ASAP:
                               6: {"emotion": "NEUTRAL"}}
 
     def debug(self, tmp):
-        if self._debug:
-            self.log.debug(tmp)
+        self.log.debug(tmp)
 
     def virtualCam(self, input_q):
         """
@@ -138,34 +137,37 @@ class ASAP:
         :return:
         """
         while self.started:
-            t = time.time()
-            if (t - self.last_time_action) >= self.actionHandler_delay:
-                if not self.result_queue.empty():
-                    with self.lock:
-                        tmp_queue = self.result_queue
-                    length_queue = len(list(tmp_queue.queue))
-                    for x in range(length_queue):
-                        result = tmp_queue.get()
-                        key = dict(result).keys()
-                        # possible actions:
-                        # mood, stt, bg, gesture
-                        if "mood" in key:  # if mood is in result
-                            self.mood_deque.append(result['mood'])
+            try:
+                t = time.time()
+                if (t - self.last_time_action) >= self.actionHandler_delay:
+                    if not self.result_queue.empty():
+                        with self.lock:
+                            tmp_queue = self.result_queue
+                        length_queue = len(list(tmp_queue.queue))
+                        for x in range(length_queue):
+                            result = tmp_queue.get()
+                            key = dict(result).keys()
+                            # possible actions:
+                            # mood, stt, bg, gesture
+                            if "mood" in key:  # if mood is in result
+                                self.mood_deque.append(result['mood'])
 
-                        elif "stt" in key:
-                            self.stt_actions(result['stt'])
+                            elif "stt" in key:
+                                self.stt_actions(result['stt'])
 
-                        elif "bg" in key:
-                            self.bgMask_frame = self.flip_frame(result["bg"])
+                            elif "bg" in key:
+                                self.bgMask_frame = self.flip_frame(result["bg"])
 
-                        elif "gesture" in key:
-                            self.gesture_action(result["gesture"])
+                            elif "gesture" in key:
+                                self.gesture_action(result["gesture"])
 
-                    self.build_end_frame()
-                    self.build_actions()
+                        self.build_end_frame()
+                        self.build_actions()
 
-                self.last_time_action = t
-            time.sleep(self.while_delay)
+                    self.last_time_action = t
+                time.sleep(self.while_delay)
+            except Exception as e:
+                self.log.warning(f"actionhandler {e}")
 
     def stt_actions(self, tmp: str):
         """
@@ -466,7 +468,7 @@ class ASAP:
         :return:
         """
         self.log.debug("ASAP VideoCap started")
-        delay = 1/self.frame_capture_fps
+        delay = 1 / self.frame_capture_fps
         last = 0
         try:
             cap = cv2.VideoCapture(0)
@@ -475,12 +477,14 @@ class ASAP:
             cap = cv2.VideoCapture(cv2.CAP_DSHOW)
             self.log.warning(f"VideoCap {e}")
         while self.started:
-            timeNow = time.time()
-            if (timeNow - last) >= delay:
-                self.ret, self.frame = cap.read()
-                last = timeNow
-            time.sleep(delay/5)
-
+            try:
+                timeNow = time.time()
+                if (timeNow - last) >= delay:
+                    self.ret, self.frame = cap.read()
+                    last = timeNow
+                time.sleep(delay / 5)
+            except Exception as e:
+                self.log.warning(f"ASAP videoCap {e}")
 
     def videoShow(self):
         """
@@ -489,13 +493,16 @@ class ASAP:
         :return:
         """
         while self.started:
-            if self.show_video:
-                if isinstance(self.result_frame, ndarray):
-                    cv2.imshow('frame', self.result_frame)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        self.stop()
-                    self.result_frame = None
-            time.sleep(self.while_delay)
+            try:
+                if self.show_video:
+                    if isinstance(self.result_frame, ndarray):
+                        cv2.imshow('frame', self.result_frame)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            self.stop()
+                        self.result_frame = None
+                time.sleep(self.while_delay)
+            except Exception as e:
+                self.log.warning(f"ASAP videoShow {e}")
 
     def websocket(self, in_q: queue.Queue):
         func_name = inspect.stack()[0][3]
@@ -517,9 +524,13 @@ class ASAP:
                 except Exception as e:
                     self.log.warning(f"{func_name} {e}")
                     time.sleep(1)
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            asyncio.get_event_loop().run_until_complete(start_ws())
+
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                asyncio.get_event_loop().run_until_complete(start_ws())
+            except Exception as e:
+                self.log.warning(f"ASAP {func_name} {e}")
             time.sleep(1)
         time.sleep(1)
 
@@ -622,7 +633,8 @@ class ASAP:
         func_name = inspect.stack()[0][3]
         self.debug(f"{func_name} init runtime")
         # Init a thread for the Speech to Text service, and pass the queue.
-        self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock, self.log) ,name="ASAP_stt", daemon=True)
+        self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock, self.log),
+                                 name="ASAP_stt", daemon=True)
         self.stt_thread.start()
 
         # Init a thread for the VideoCapture Service.
@@ -635,7 +647,8 @@ class ASAP:
         self.videoShow_thread = Thread(target=self.videoShow, daemon=True, name="ASAP_vidshow")
         self.videoShow_thread.start()
 
-        self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,), name="ASAP_virtualcam")
+        self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,),
+                                        name="ASAP_virtualcam")
         self.virtualCam_thread.start()
 
         self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,), name='"ASAP_websocket')
@@ -657,7 +670,7 @@ class ASAP:
             if not isinstance(self.visionMd.bucket, type(None)):
                 self.result_queue.put({"mood": self.visionMd.bucket})
                 self.websocket_q.put({
-                    "action":"mood",
+                    "action": "mood",
                     "name": self.ws_name,
                     "payload": self.visionMd.bucket.get("predictions")
                 })
@@ -714,11 +727,16 @@ def load_args():
     parser.add_argument(
         '-d', '--debug', required=False, type=bool, default=True, help='Add debug info to logs/*.log')
     parser.add_argument(
-        '-g', '--google_cred', required=False, default="google_credentials.json", type=str, help='Google credentials file location')
+        '-g', '--google_cred', required=False, default="google_credentials.json", type=str,
+        help='Google credentials file location')
     parser.add_argument(
         '-H', '--height', required=False, type=int, help='Vritual cam height')
     parser.add_argument(
         '-W', '--width', required=False, type=int, help='Vritual cam weight')
+    parser.add_argument(
+        '-l', required=False,
+        default="DEBUG", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'],
+        type=int, help='Debug level')
     args = parser.parse_args()
 
     results = {}
@@ -741,6 +759,14 @@ def load_args():
         results['cam_height'] = args.height
     if args.width is not None:
         results['cam_width'] = args.width
+    if args.level is not None:
+        levels = {"CRITICAL": 50,
+                  "ERROR": 40,
+                  "WARNING": 30,
+                  "INFO": 20,
+                  "DEBUG": 10,
+                  "NOTSET": 0}
+        results['level'] = levels.get((str(args.level).upper()))
 
     return results
 
@@ -757,13 +783,13 @@ if __name__ == "__main__":
         os.makedirs("logs")
     # init a logfile
     logging.basicConfig(filename=f"logs/{dt_string}.log",
-                        level=logging.DEBUG,
+                        level=args.get("level"),
                         datefmt='%d-%m-%y %H:%M:%S',
                         format='%(levelname)s %(asctime)s %(message)s',
                         )
 
     # init main app
-    asap = ASAP(ws_name=args.get('name'), logging= logging, debug=args.get("debug"))
+    asap = ASAP(ws_name=args.get('name'), logging=logging, debug=args.get("debug"))
 
     # start main app in a Thread, main propose is to run as a containerized app
     asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
