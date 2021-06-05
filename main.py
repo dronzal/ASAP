@@ -42,7 +42,7 @@ class ASAP:
 
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
         self.bgMask = bgm.BackgroundMask()
-        self.visionMd = MD.MoodDetection()
+        self.visionMd = MD.MoodDetection(self.log)
         self.gesture = gesture_detection.GestureDetection()
 
         self.cam_width = cam_width
@@ -51,7 +51,7 @@ class ASAP:
         # Bool for continuous runTime
         self.started = False
         self.cap = None
-        self.frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
+        self.frame = np.zeros(shape=(self.cam_height, self.cam_width, 3), dtype=np.float32)
         self.counter = 0
         self.show_video = True
 
@@ -74,8 +74,8 @@ class ASAP:
         self.vote_text = ""
 
         self._debug = debug
-        self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
-        self.bgMask_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
+        self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3), dtype=np.float32)
+        self.bgMask_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3),dtype=np.float32)
         self.gesture_result = None
         self.timings = None
 
@@ -86,7 +86,7 @@ class ASAP:
 
         self.last_time_action = 0
         self.actionHandler_delay = 1 / 20  # 20 frames per second
-
+        self.frame_capture_fps = 20
         self.while_delay = 0.05
 
         # Actions
@@ -446,7 +446,7 @@ class ASAP:
         :return:
         """
         if self.started and start:
-            print("Already started")
+            self.log.warning("ASAP Already started")
         else:
             self.started = start
             self.runtime()
@@ -465,13 +465,22 @@ class ASAP:
         Always run this in a thread.
         :return:
         """
+        self.log.debug("ASAP VideoCap started")
+        delay = 1/self.frame_capture_fps
+        last = 0
         try:
             cap = cv2.VideoCapture(0)
-        except Exception:
+            self.log.info("ASAP videoCap() videoCapture(0)")
+        except Exception as e:
             cap = cv2.VideoCapture(cv2.CAP_DSHOW)
-
+            self.log.warning(f"VideoCap {e}")
         while self.started:
-            self.ret, self.frame = cap.read()
+            timeNow = time.time()
+            if (timeNow - last) >= delay:
+                self.ret, self.frame = cap.read()
+                last = timeNow
+            time.sleep(delay/5)
+
 
     def videoShow(self):
         """
@@ -611,9 +620,9 @@ class ASAP:
         :return:
         """
         func_name = inspect.stack()[0][3]
-
+        self.debug(f"{func_name} init runtime")
         # Init a thread for the Speech to Text service, and pass the queue.
-        self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock,) ,name="ASAP_stt", daemon=True)
+        self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock, self.log) ,name="ASAP_stt", daemon=True)
         self.stt_thread.start()
 
         # Init a thread for the VideoCapture Service.
@@ -703,7 +712,7 @@ def load_args():
     parser.add_argument(
         '-n', '--name', required=False, type=str, help='User name for websocket')
     parser.add_argument(
-        '-d', '--debug', required=False, type=bool, default=False, help='Add debug info to logs/*.log')
+        '-d', '--debug', required=False, type=bool, default=True, help='Add debug info to logs/*.log')
     parser.add_argument(
         '-g', '--google_cred', required=False, default="google_credentials.json", type=str, help='Google credentials file location')
     parser.add_argument(
