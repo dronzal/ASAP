@@ -9,7 +9,7 @@ import re
 from datetime import datetime
 
 import keyboard
-
+import argparse
 from tools import speechToText as STT
 from tools.bgmask import bg_mask as bgm
 from tools.vision_mood_detection import mood_detection as MD
@@ -31,7 +31,7 @@ import json
 import logging
 import inspect
 from datetime import datetime as d
-
+import os
 
 class ASAP:
 
@@ -119,10 +119,14 @@ class ASAP:
                 while self.started:
                     try:
                         data = input_q.get()
-                        data = data[..., ::-1]
-                        cam.send(data)
-                        self.debug(f"{func_name} sendFrame")
-                        cam.sleep_until_next_frame()
+                        if isinstance(data, np.ndarray):
+                            data = data[..., ::-1]
+                            cam.send(data)
+                            self.debug(f"{func_name} sendFrame")
+                            cam.sleep_until_next_frame()
+                        else:
+                            self.log.warning(f"{func_name} Type virtualcam frame: {type(data)}")
+                            time.sleep(0.1)
                     except Exception as e:
                         self.log.warning(f"{func_name} runtime-loop {e}")
         except Exception as e:
@@ -452,8 +456,7 @@ class ASAP:
         Functions that stops en close the application
         """
         self.started = False
-        if self.debug:
-            print("Stop")
+        self.debug("Exit")
         sys.exit()
 
     def videoCap(self):
@@ -685,7 +688,58 @@ class ASAP:
             self.gesture.time = 0
 
 
+def load_args():
+    """
+    Loading command line arguments
+    Available args:
+        --name
+        --debug
+        --google_cred
+        --height
+        --width
+    :return: dict
+    """
+    parser = argparse.ArgumentParser(description='ASAP, adding AI features on top off your camera stream')
+    parser.add_argument(
+        '-n', '--name', required=False, type=str, help='User name for websocket')
+    parser.add_argument(
+        '-d', '--debug', required=False, type=bool, default=False, help='Add debug info to logs/*.log')
+    parser.add_argument(
+        '-g', '--google_cred', required=False, default="google_credentials.json", type=str, help='Google credentials file location')
+    parser.add_argument(
+        '-H', '--height', required=False, type=int, help='Vritual cam height')
+    parser.add_argument(
+        '-W', '--width', required=False, type=int, help='Vritual cam weight')
+    args = parser.parse_args()
+
+    results = {}
+
+    if args.name is not None:
+        results['name'] = args.name
+    else:
+        results['name'] = input("User name: ")
+    results['debug'] = args.debug
+    if args.google_cred is not None:
+        file = args.google_cred
+        if os.path.exists(file):
+            results['google'] = file
+        else:
+            tmp = ""
+            while not os.path.exists(tmp):
+                tmp = input("Google credentials file not found.\nInput the file location:\n")
+            results['google'] = tmp
+    if args.height is not None:
+        results['cam_height'] = args.height
+    if args.width is not None:
+        results['cam_width'] = args.width
+
+    return results
+
+
 if __name__ == "__main__":
+    # load args
+    args = load_args()
+
     date = d.now()
     dt_string = date.strftime("%Y%m%d_%H%M%S")
 
@@ -697,7 +751,7 @@ if __name__ == "__main__":
                         )
 
     # init main app
-    asap = ASAP(ws_name=input("User name: "), logging= logging, debug=True)
+    asap = ASAP(ws_name=args.get('name'), logging= logging, debug=args.get("debug"))
 
     # start main app in a Thread, main propose is to run as a containerized app
     asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
