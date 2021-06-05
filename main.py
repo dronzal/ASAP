@@ -797,6 +797,6 @@ if __name__ == "__main__":
     asap_thread.start()
     while asap.started:
         try:
-            time.sleep(1)
+            time.sleep(2)
         except KeyboardInterrupt:
             asap.stop()
