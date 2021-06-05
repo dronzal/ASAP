@@ -5,33 +5,32 @@ This file is part of the ASAP Interactive Videoconferencing AI/ML Tools
 Copyright 2021, ASAP team, authored by Arne Depuydt
 """
 
-import re
+from collections import Counter, deque
 from datetime import datetime
-
-import keyboard
-import argparse
+from datetime import datetime as d
+from numpy import ndarray
+from threading import Thread, Lock
 from tools import speechToText as STT
 from tools.bgmask import bg_mask as bgm
-from tools.vision_mood_detection import mood_detection as MD
 from tools.gesture import gesture_detection
-import cv2
-import time
-import concurrent.futures
-from threading import Thread, Lock
-from numpy import ndarray
-import numpy as np
-import pyvirtualcam
-import random
-import sys
-import queue
-from collections import Counter, deque
-import websockets
+from tools.vision_mood_detection import mood_detection as MD
+import argparse
 import asyncio
-import json
-import logging
+import concurrent.futures
+import cv2
 import inspect
-from datetime import datetime as d
+import json
+import keyboard
+import logging
+import numpy as np
 import os
+import pyvirtualcam
+import queue
+import random
+import re
+import sys
+import time
+import websockets
 
 
 class ASAP:
