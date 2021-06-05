@@ -34,8 +34,6 @@ class ASAP:
 
     def __init__(self, ws_name, cam_width=640, cam_height=480):
 
-        while not ws_name:
-            ws_name = input("Please, input a user name: ")
         self.ws_name = ws_name
 
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
@@ -654,11 +652,11 @@ class ASAP:
 
 
 if __name__ == "__main__":
-    asap = ASAP(ws_name="Pieter-Jan")
+    asap = ASAP(ws_name=input("User name: "))
     asap_thread = Thread(target=asap.start, daemon=True)
     asap_thread.start()
     while asap.started:
-        print(asap.get_gesture)
-        # print("stt", asap.get_stt)
-        time.sleep(0.2)
-        pass
+        try:
+            time.sleep(0.2)
+        except KeyboardInterrupt:
+            asap.stop()
