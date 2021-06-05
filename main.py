@@ -28,13 +28,17 @@ from collections import Counter, deque
 import websockets
 import asyncio
 import json
+import logging
+import inspect
+from datetime import datetime as d
 
 
 class ASAP:
 
-    def __init__(self, ws_name, cam_width=640, cam_height=480):
+    def __init__(self, ws_name, logging, debug=False, cam_width=640, cam_height=480):
 
         self.ws_name = ws_name
+        self.log = logging
 
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
         self.bgMask = bgm.BackgroundMask()
@@ -69,7 +73,7 @@ class ASAP:
         self.voting_mode = True
         self.vote_text = ""
 
-        self.debug = False
+        self._debug = debug
         self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
         self.bgMask_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
         self.gesture_result = None
@@ -100,16 +104,29 @@ class ASAP:
                               5: {"emotion": "SURPRISE"},
                               6: {"emotion": "NEUTRAL"}}
 
+    def debug(self, tmp):
+        if self._debug:
+            self.log.debug(tmp)
+
     def virtualCam(self, input_q):
         """
         VirtualCam function
         :return:
         """
-        with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
-            while self.started:
-                data = input_q.get()
-                data = data[..., ::-1]
-                cam.send(data)
+        func_name = inspect.stack()[0][3]
+        try:
+            with pyvirtualcam.Camera(width=self.cam_width, height=self.cam_height, fps=20) as cam:
+                while self.started:
+                    try:
+                        data = input_q.get()
+                        data = data[..., ::-1]
+                        cam.send(data)
+                        self.debug(f"{func_name} sendFrame")
+                        cam.sleep_until_next_frame()
+                    except Exception as e:
+                        self.log.warning(f"{func_name} runtime-loop {e}")
+        except Exception as e:
+            self.log.warning(f"{func_name} {e}")
 
     def actionhandler(self):
         """
@@ -162,9 +179,10 @@ class ASAP:
         :param tmp:
         :return:
         """
-
+        func_name = inspect.stack()[0][3]
         self.stt_result = tmp
-        # print(self.stt_result)
+        self.debug(f"{func_name} stt result: {self.stt_result}")
+
         self.transcript_done = False
         self.websocket_q.put({
             "action": "log_entry",
@@ -467,20 +485,31 @@ class ASAP:
                     self.result_frame = None
             time.sleep(self.while_delay)
 
-    def websocket(self, in_q):
-        async def start_ws():
-            async with websockets.connect("ws://84.196.102.201:6789") as websocket:
-                print("connected")
-                while self.started:
-                    data = in_q.get()
-                    msg = json.dumps(data)
-                    print("About to send", msg)
-                    await websocket.send(msg)
-                    res = await websocket.recv()
-                    print("Res: ", res)
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        asyncio.get_event_loop().run_until_complete(start_ws())
+    def websocket(self, in_q: queue.Queue):
+        func_name = inspect.stack()[0][3]
+        while self.started:
+            async def start_ws():
+                try:
+                    async with websockets.connect("ws://84.196.102.201:6789") as websocket:
+                        self.debug(f"{func_name} connected")
+                        while True:
+                            while in_q.not_empty:
+                                data = in_q.get()
+                                msg = json.dumps(data)
+                                self.debug(f"{func_name} About to send {msg}")
+                                await websocket.send(msg)
+                                res = await websocket.recv()
+                                self.debug(f"{func_name} Res:  {res}")
+                                time.sleep(self.while_delay)
+                            time.sleep(0.2)
+                except Exception as e:
+                    self.log.warning(f"{func_name} {e}")
+                    time.sleep(1)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            asyncio.get_event_loop().run_until_complete(start_ws())
+            time.sleep(1)
+        time.sleep(1)
 
     @property
     def bg_mask_frame(self):
@@ -578,24 +607,26 @@ class ASAP:
         ASAP runtime. Runs forever if self.started is True.
         :return:
         """
+        func_name = inspect.stack()[0][3]
+
         # Init a thread for the Speech to Text service, and pass the queue.
-        self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock,), daemon=True)
+        self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock,) ,name="ASAP_stt", daemon=True)
         self.stt_thread.start()
 
         # Init a thread for the VideoCapture Service.
-        self.videoCap_thread = Thread(target=self.videoCap, daemon=True)
+        self.videoCap_thread = Thread(target=self.videoCap, daemon=True, name="ASAP_videocap")
         self.videoCap_thread.start()
 
-        self.action_thread = Thread(target=self.actionhandler, daemon=True)
+        self.action_thread = Thread(target=self.actionhandler, daemon=True, name="ASAP_actions")
         self.action_thread.start()
 
-        self.videoShow_thread = Thread(target=self.videoShow, daemon=True)
+        self.videoShow_thread = Thread(target=self.videoShow, daemon=True, name="ASAP_vidshow")
         self.videoShow_thread.start()
 
-        #self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,))
-        #self.virtualCam_thread.start()
+        self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,), name="ASAP_virtualcam")
+        self.virtualCam_thread.start()
 
-        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,))
+        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,), name='"ASAP_websocket')
         self.websocket_thread.start()
 
         while self.started:
@@ -603,10 +634,13 @@ class ASAP:
             startTime = time.time()
 
             # Init an async threadPool and wait if the childThreads are finished to go further.
-            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                executor.submit(self.bgMask.runTime, self.frame)
-                executor.submit(self.visionMd.runTime, self.frame)
-                executor.submit(self.gesture.runTime, self.frame)
+            try:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                    executor.submit(self.bgMask.runTime, self.frame)
+                    executor.submit(self.visionMd.runTime, self.frame)
+                    executor.submit(self.gesture.runTime, self.frame)
+            except Exception as e:
+                self.log.warning(f"{func_name} {e}")
 
             if not isinstance(self.visionMd.bucket, type(None)):
                 self.result_queue.put({"mood": self.visionMd.bucket})
@@ -652,11 +686,26 @@ class ASAP:
 
 
 if __name__ == "__main__":
-    asap = ASAP(ws_name=input("User name: "))
-    asap_thread = Thread(target=asap.start, daemon=True)
+    date = d.now()
+    dt_string = date.strftime("%Y%m%d_%H%M%S")
+
+    # init a logfile
+    logging.basicConfig(filename=f"logs/{dt_string}.log",
+                        level=logging.DEBUG,
+                        datefmt='%d-%m-%y %H:%M:%S',
+                        format='%(levelname)s %(asctime)s %(message)s',
+                        )
+
+    # init main app
+    asap = ASAP(ws_name=input("User name: "), logging= logging, debug=True)
+
+    # start main app in a Thread, main propose is to run as a containerized app
+    asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
+
+    # Start the main thread
     asap_thread.start()
     while asap.started:
         try:
-            time.sleep(0.2)
+            time.sleep(1)
         except KeyboardInterrupt:
             asap.stop()
