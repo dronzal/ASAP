@@ -17,30 +17,16 @@ published under Apache 2.0 licence
 https://github.com/kinivi/tello-gesture-control/blob/main/LICENSE
 """
 
-# Import libraries: ml
 import cv2 as cv
 import mediapipe as mp
 import os
-# Import libraries: camera
-import pyvirtualcam
-
-# Import libraries: tools
 import csv
 import numpy as np
 import copy
 import time
-import sys
 import itertools
-
-# Import libraries: collections
 from collections import Counter
 from collections import deque
-
-# Import libraries: threading
-import threading
-import setproctitle
-
-# Import libraries: local classes
 from .utils import cvfpscalc
 from .model.keypoint_classifier import keypoint_classifier as kc
 from .model.point_history_classifier import point_history_classifier as phc
@@ -55,7 +41,7 @@ class GestureDetection:
         self.log.debug("Init")
 
         # Init MediaPipe parameters
-        self.mp_max_num_hands = 1
+        self.mp_max_num_hands = 2
         self.mp_min_detection_confidence = 0.7
         self.mp_min_tracking_confidence = 0.5
         self.mp_use_brect = 'store_true'
@@ -65,13 +51,6 @@ class GestureDetection:
         self.hands = self.mp_hands.Hands(max_num_hands=self.mp_max_num_hands,
                                          min_detection_confidence=self.mp_min_detection_confidence,
                                          min_tracking_confidence=self.mp_min_tracking_confidence)
-
-        self.time = 0
-        self.started = False
-        self.thread = None
-        self.frame = None
-        self.bucket = None
-        self.debug_frame = None
 
         # Create the Keypoint classifier object
         self.keypoint_classifier = kc.KeyPointClassifier()
@@ -102,6 +81,124 @@ class GestureDetection:
 
         # Create the frames per second FPS rate utils object
         self.cvFpsCalc = cvfpscalc.CvFpsCalc(buffer_len=10)
+
+        self.time = 0
+        self.started = False
+        self.thread = None
+        self.frame = None
+        self.bucket = None
+        self.debug_frame = None
+
+        self.command_mode = None
+        self.command = ""
+
+
+    def runTime(self, frame):
+        """ Runtime execution
+
+        :param self:
+        :return:
+        """
+        try:
+            # Get the FPS rate
+            self.fps = self.cvFpsCalc.get()
+            frame = np.uint8(frame)
+            # Set the start time
+            startTime = time.time()
+            # Image manipulation
+            image = cv.flip(frame, 1)  # Flip image
+            debug_image = copy.deepcopy(image)  # Copy image
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)  # Change to RGB for Mediapipe
+
+            # Process image with Mediapipe hands model
+            image.flags.writeable = False  # Set writeable to False to speed up process
+            results = self.hands.process(image)
+            image.flags.writeable = True
+
+            # When hand detected:
+            if not isinstance(results.multi_hand_landmarks, type(None)):
+                tmp = {}
+                counter = 0
+
+                if len(results.multi_hand_landmarks) == 2:
+                    self.command_mode = True
+                else:
+                    self.command_mode = False
+
+                if self.command_mode:
+                    self.command = "Command mode on"
+
+                self.command_mode = False
+
+                for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
+                                                      results.multi_handedness):
+
+                    # Calculate center of palm
+                    cx, cy = self.calc_palm_moment(debug_image, hand_landmarks)
+
+                    # Calculate bounding rectangle of hand
+                    brect = self.calc_bounding_rect(debug_image, hand_landmarks)
+
+                    # Create a list from the detected landmarks
+                    landmark_list = self.calc_landmark_list(debug_image, hand_landmarks)
+
+                    # Pre-process landmark list and point history list
+                    pre_processed_landmark_list = self.pre_process_landmark(landmark_list)
+                    pre_processed_point_history_list = self.pre_process_point_history(debug_image, self.point_history)
+
+                    # Run keypoint_classifier model and write to point history deque if hand sign id = 2
+                    hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
+
+                    if hand_sign_id == 2:  # Index finger raised
+                        self.point_history.append(landmark_list[8])
+                    else:
+                        self.point_history.append([0, 0])
+
+                    # Run point_history classifier model (when 32 values in preprocessed list = full 16 history points)
+                    finger_gesture_id = 0
+                    point_history_len = len(pre_processed_point_history_list)
+                    if point_history_len == (self.history_length * 2):
+                        finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
+
+                    # Append result to finger_gesture history deque and select most common recognized gesture
+                    self.finger_gesture_history.append(finger_gesture_id)
+                    most_common_fg_id = Counter(self.finger_gesture_history).most_common()
+
+                    # Test simple number recognition directly with Mediapipe
+                    thumb, recognized_sum = self.recognize_hand_gesture(image, cx, cy, hand_landmarks, handedness)
+
+                    tmp[counter] = {"gesture": [self.command,
+                                                recognized_sum,
+                                                thumb,
+                                                self.keypoint_classifier_labels[hand_sign_id]
+                                                #self.point_history_classifier_labels[most_common_fg_id[0][0]]
+                                                ]}
+
+                    # Draw landmarks, bounding rectangle and information
+                    debug_image = self.draw_landmarks(debug_image, cx, cy, landmark_list, handedness)
+                    debug_image = self.draw_bounding_rect(self.mp_use_brect, debug_image, brect)
+                    debug_image = self.draw_info_text(
+                        debug_image,
+                        brect,
+                        self.keypoint_classifier_labels[hand_sign_id],
+                        self.point_history_classifier_labels[most_common_fg_id[0][0]],
+                    )
+
+                    counter += 1
+                self.bucket = tmp
+                self.log.info(f"Result {tmp}")
+                self.command = ""
+            else:
+                self.point_history.append([0, 0])  # No hand visible on the screen
+
+            # Anyway draw point history and regular information when index finger is shown
+            #debug_image = self.draw_point_history(debug_image, self.point_history)
+            debug_image = self.draw_info(debug_image, self.fps)
+
+            self.debug_frame = debug_image
+            self.time = round((time.time() - startTime) * 1000)
+        except Exception as e:
+            self.log.warning(f"{e}")
 
     @staticmethod
     def print_rect(image, color):
@@ -393,7 +490,7 @@ class GestureDetection:
 
         recognized_hand_gesture = None
         recognized_sum = None
-        thumb_up = -1
+        thumb = -1
         thumb_state = -1
         index_state = -1
         middle_state = -1
@@ -402,9 +499,9 @@ class GestureDetection:
 
         # Thumb up or down
         if landmark_point[2][1] < landmark_point[3][1] and (landmark_point[3][1]) < landmark_point[4][1]:
-            thumb_up = 0
+            thumb = "Thumb-Down"
         else:
-            thumb_up = 1
+            thumb = "Thumb-Up"
 
         # Thumb left or right
         if handedness.classification[0].label[0] == "R":
@@ -438,22 +535,7 @@ class GestureDetection:
 
         recognized_sum = thumb_state + index_state + middle_state + ring_state + pinky_state
 
-        if thumb_state == 1 and index_state == 1 and middle_state == 1 and ring_state == 1 and pinky_state == 1:
-            recognized_hand_gesture = "FIVE"
-        elif thumb_state == 0 and index_state == 1 and middle_state == 1 and ring_state == 1 and pinky_state == 1:
-            recognized_hand_gesture = "FOUR"
-        elif thumb_state == 1 and index_state == 1 and middle_state == 1 and ring_state == 0 and pinky_state == 0:
-            recognized_hand_gesture = "THREE"
-        elif thumb_state == 1 and index_state == 1 and middle_state == 0 and ring_state == 0 and pinky_state == 0:
-            recognized_hand_gesture = "TWO"
-        elif thumb_state == 0 and index_state == 1 and middle_state == 0 and ring_state == 0 and pinky_state == 0:
-            recognized_hand_gesture = "ONE"
-        elif thumb_state == 0 and index_state == 0 and middle_state == 0 and ring_state == 0 and pinky_state == 0:
-            recognized_hand_gesture = "ZERO"
-        else:
-            recognized_hand_gesture = None
-
-        return thumb_up, recognized_sum, recognized_hand_gesture
+        return thumb, recognized_sum,
 
     @staticmethod
     def calc_landmark_list(image, landmarks):
@@ -517,86 +599,3 @@ class GestureDetection:
             itertools.chain.from_iterable(temp_point_history))
 
         return temp_point_history
-
-    def runTime(self, frame):
-        """ Runtime execution
-
-        :param self:
-        :return:
-        """
-        try:
-            # Get the FPS rate
-            self.fps = self.cvFpsCalc.get()
-            frame = np.uint8(frame)
-            # Set the start time
-            startTime = time.time()
-            # Image manipulation
-            image = cv.flip(frame, 1)  # Flip image
-            debug_image = copy.deepcopy(image)  # Copy image
-            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)  # Change to RGB for Mediapipe
-
-            # Process image with Mediapipe hands model
-            image.flags.writeable = False  # Set writeable to False to speed up process
-            results = self.hands.process(image)
-            image.flags.writeable = True
-
-            # When hand detected:
-            if not isinstance(results.multi_hand_landmarks, type(None)):
-                tmp = {}
-                counter = 0
-                for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
-                                                      results.multi_handedness):
-
-                    # Calculate center of palm
-                    cx, cy = self.calc_palm_moment(debug_image, hand_landmarks)
-                    # Calculate bounding rectangle of hand
-                    brect = self.calc_bounding_rect(debug_image, hand_landmarks)
-                    # Create a list from the detected landmarks
-                    landmark_list = self.calc_landmark_list(debug_image, hand_landmarks)
-                    # Pre-process landmark list and point history list
-                    pre_processed_landmark_list = self.pre_process_landmark(landmark_list)
-                    pre_processed_point_history_list = self.pre_process_point_history(debug_image, self.point_history)
-                    # Run keypoint_classifier model and write to point history deque if hand sign id = 2
-                    hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
-                    if hand_sign_id == 2:  # Index finger raised
-                        self.point_history.append(landmark_list[8])
-                    else:
-                        self.point_history.append([0, 0])
-                    # Run point_history classifier model (when 32 values in preprocessed list = full 16 history points)
-                    finger_gesture_id = 0
-                    point_history_len = len(pre_processed_point_history_list)
-                    if point_history_len == (self.history_length * 2):
-                        finger_gesture_id = self.point_history_classifier(pre_processed_point_history_list)
-
-                    # Append result to finger_gesture history deque and select most common recognized gesture
-                    self.finger_gesture_history.append(finger_gesture_id)
-                    most_common_fg_id = Counter(self.finger_gesture_history).most_common()
-
-                    # Draw landmarks, bounding rectangle and information
-                    debug_image = self.draw_landmarks(debug_image, cx, cy, landmark_list, handedness)
-                    debug_image = self.draw_bounding_rect(self.mp_use_brect, debug_image, brect)
-                    debug_image = self.draw_info_text(
-                        debug_image,
-                        brect,
-                        self.keypoint_classifier_labels[hand_sign_id],
-                        self.point_history_classifier_labels[most_common_fg_id[0][0]],
-                    )
-                    tmp[counter] = {"gesture": [self.keypoint_classifier_labels[hand_sign_id],
-                                            self.point_history_classifier_labels[most_common_fg_id[0][0]]]}
-
-                    # Test simple number recognition directly with Mediapipe
-                    thumb_up, recognized_sum, recognized_hand_gesture = self.recognize_hand_gesture(image, cx, cy, hand_landmarks, handedness)
-                    counter += 1
-                self.bucket = tmp
-                self.log.info(f"Result {tmp}")
-            else:
-                self.point_history.append([0, 0])  # No hand visible on the screen
-
-            # Anyway draw point history and regular information when index finger is shown
-            debug_image = self.draw_point_history(debug_image, self.point_history)
-            debug_image = self.draw_info(debug_image, self.fps)
-
-            self.debug_frame = debug_image
-            self.time = round((time.time() - startTime) * 1000)
-        except Exception as e:
-            self.log.warning(f"{e}")
