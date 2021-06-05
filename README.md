@@ -9,31 +9,28 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 ## Installation
 
 First: 
-```bash
+```shell
 # installing venv 
 python3 -m pip install --user virtualenv
-
 # creating virtual env
 python3 -m venv env
-
 # activating virtual env
-  # ------FOR LINUX/MAC---------#
-    source env/bin/activate
-  # -------FOR WINDOWS----------#
-    .\env\Scripts\activate
+# ------FOR LINUX/MAC---------#
+source env/bin/activate
+# -------FOR WINDOWS----------#
+.\env\Scripts\activate
 
-# install requirements
-python3 -m pip install --user -r requirements.txt
+python3 -m pip install --usere -r requirements.txt
 ```
 
-```bash
-# View args:
-python3 main.py -h 
+Then open main.py in IDE
 
-# Run app:
-python3 main.py
+```python
+# Make sure that the google credentials are correct.
+asap = ASAP(ws_name="YOUR NAME")
+# And start the ASAP application
+asap.start()
 ```
-
 
 ## Application
 
@@ -47,7 +44,7 @@ Please click for further details:
 
 <details>
 <summary>Gesture Recognition</summary>
-
+<p>
 The Gesture Recognition component makes use of the Google-developed Mediapipe framework for hand recognition. The hand landmarks are used as coordinates that can be fed into a neural network to recognize hand gestures (and finger gestures).
  
 #### Disclaimer
@@ -58,8 +55,15 @@ published under Apache 2.0 licence: https://github.com/Kazuhito00/hand-gesture-r
 * It uses hand gestures trained by kinivi, his neural network design and Jupyter notebook from Github: https://github.com/kinivi/tello-gesture-control published under Apache 2.0 licence: https://github.com/kinivi/tello-gesture-control/blob/main/LICENSE
 
 #### Research
- ...
- 
+The initial setup was clarified relatively quickly: The gesture recognition needed to be able to identify hands in webcam frames that are passed by the central application. In order to be able to interact with the user, the results need a way to be displayed on the image that is returned to the central application (or annotation added there), before beeing sent via virtual camera to the standard videoconferencing application (MS Teams or Discord).
+<p />
+The initial research discovered multiple datasets where hand gestures were collected and used to train Neural Networks. Examples are the 20GB Jester Dataset
+https://20bn.com/datasets/jester/v1 or the egocentric gesture dataset EgoGesture http://www.nlpr.ia.ac.cn/iva/yfzhang/datasets/egogesture.html. Using these well documented datasets and the models that made use of them, the first idea how to approach the gesture recognition was formed. However, given the size of these datsets, Convolutional Neural Network processing was expected high in training time and effort. Other options to efficiently recognize the hands were to use RGB values detection, edge detection or background subtraction. All of these options would have required effort to build, test and validate the hand recognition before beeing able to get to gesture detection.
+<p />
+Luckily, Google Mediapipe was discovered. It is a relative lightweight Machine Learning solution that recognizes hands (amongst others) and is available as Python library https://google.github.io/mediapipe/solutions/hands#python-solution-api. Having the possible to translate hands and fingers into coordinates, the next step was to search for gesture detection solutions on Github. The above linked framework by Kazuhito00 provided a well documented approach using the coordinates as input and two Neural Networks, one for gesture detection and one for (index) finger movement detection. In the original solution, the functionality to save a time series of hand gestures and coordinates and to use it to train the Neural Network was available in a Jupyter Notebook.
+<p />
+Inspired by the second repository by kinivi linked above, additional hand gestures were trained. Due to the existing translation in coordinates, the Neural Network is very simple and provides a high detection accuracy at very low sample size.
+
 #### Machine Learning (ML) / Artificial Intelligence (AI)
 ML/AI is used in this component to identify hand gestures in webcam images. The Google mediapipe framework allows to identify one or both hand(s) and returns the coordinates of hand, fingers and joints.
 <img src="assets/gesturesMediapipe.png" width="720">
@@ -76,7 +80,9 @@ The model training is executed in a Jupyter notebook. The neural network is fed 
 #### Further Interesting Links
 * Mediapipe Demo
   * <a href="https://mediapipe.dev/demo/holistic_remote/" target="blank">Holistic Mediapipe demo</a>
-</p>
+ 
+
+ </p>
 </details>
 
 <details>
@@ -126,15 +132,23 @@ tool and with the videoconference participants. Voice commands are activated by
 saying _the italic words_, gesture commands are activated by doing 
 **the bold instructions**. Currently the following commands are supported:
 
-#### Command Mode
+<details>
+<summary>Command Mode</summary>
+<p>
+ 
 * Move into command mode:
   * **Show two hands to the webcam** 
   * _command mode on_
 * Cancel command mode: 
   * **Show two hands again**
   * _command mode off_
+</p>
+</details> 
+
+<details>
+<summary>Audio</summary>
+<p>
  
-#### Audio
 * Mute the microphone: 
   * **Show flat palm of one hand**
   * _mute_ or _toggle mute_ when unmuted 
@@ -147,16 +161,26 @@ saying _the italic words_, gesture commands are activated by doing
 * Decrease the volume: 
   * **Index finger down (and thumb to the side)**
   * _volume down_
+</p>
+</details> 
+
+<details>
+<summary>Video</summary>
+<p>
  
-#### Video
 * Black out the Camera: 
   * **Point fist at the camera**
   * _camera off_
 * Return to Webcam display: 
   * **Show upwards fist (same as un-mute)**
   * _camera on_
+</p>
+</details> 
+
+<details>
+<summary>Background</summary>
+<p>
  
-#### Background
 * Change the Background one-forward: 
   * **Fist with thumb to one side**
   * _background right_
@@ -165,15 +189,19 @@ saying _the italic words_, gesture commands are activated by doing
   * _background left_
 * Change the Background to a random one:
   * _change background_
+</p>
+</details> 
 
-
-#### Voting
+<details>
+<summary>Voting</summary>
+<p> 
+ 
 * Begin a voting process: 
   * **Victory sign**
   * _voting on_
 * Set the number of options: 
    * Indicate yes/no question: 
-     * **Thumns-up sign**
+     * **Thumbs-up sign**
    * **Show number of fingers [1..5]**
 * Confirm the number of options displayed: 
   * **OK sign**
@@ -195,10 +223,9 @@ saying _the italic words_, gesture commands are activated by doing
 
 [not implemented]
 --- Once all participants have voted, display the result on all screens ---
+</p>
+</details> 
 
-### Mood Server
-...
-
-### The End
+## The End
 
 <img src="assets/asap_end.png" width="200">
