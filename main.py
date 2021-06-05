@@ -449,7 +449,7 @@ class ASAP:
         elif color == "red":
             c = (0,0,255)
         image_width, image_height = image.shape[1], image.shape[0]
-        image = cv.rectangle(image, (1, 1), (image_width - 1, image_height - 1), c, 6)
+        image = cv2.rectangle(image, (1, 1), (image_width - 1, image_height - 1), c, 6)
         return image
 
     def start(self, start=True):
