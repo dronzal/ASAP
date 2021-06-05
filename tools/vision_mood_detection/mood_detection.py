@@ -3,13 +3,15 @@ import cv2
 import numpy as np
 from keras.models import model_from_json
 from keras.preprocessing import image
-from threading import Thread
 import os
+
 
 class MoodDetection:
 
-    def __init__(self, emotions_dict=None, model="models/fer", cascadeClassifier="models/haarcascade_frontalface_default"):
+    def __init__(self, log, emotions_dict=None, model="models/fer", cascadeClassifier="models/haarcascade_frontalface_default"):
 
+        self.log = log
+        self.log.debug("MoodDetection init")
         # Check if given emotions_dict is dict type
         if isinstance(emotions_dict, dict):
             for key in emotions_dict.keys():
@@ -36,21 +38,33 @@ class MoodDetection:
         # Drop extension
         model = os.path.join(os.path.dirname(__file__), model)
         model_name = model
+
         try:
             # load model
-            model = model_from_json(open(f"{model_name}.json", "r").read())
-            model.load_weights(f'{model_name}.h5')
+            if os.path.exists(f"{model_name}.json"):
+                model = model_from_json(open(f"{model_name}.json", "r").read())
+            else:
+                raise Exception(f"Error load mood detection model.\nGiven models: {model_name}.json")
+
+            if os.path.exists(f"{model_name}.h5"):
+                model.load_weights(f'{model_name}.h5')
+            else:
+                raise Exception(f"Error load mood detection model.\nGiven models: {model_name}.h5")
+
             self.model = model
         except:
             raise Exception(f"Error load mood detection models.\nGiven models: {model_name}.json {model_name}.h5")
 
         cascadeClassifier = os.path.join(os.path.dirname(__file__), cascadeClassifier)
-        # Drop extension
-        cascadeClassifier = str(cascadeClassifier).split(".")[0]
-        try:
-            self.face_haar_cascade = cv2.CascadeClassifier(f'{cascadeClassifier}.xml')
-        except:
-            raise Exception(f"Error load CascadeClassifier.\nGiven: {cascadeClassifier}.xml")
+
+        if os.path.exists(f"{cascadeClassifier}.xml"):
+            try:
+                self.face_haar_cascade = cv2.CascadeClassifier(f'{cascadeClassifier}.xml')
+            except:
+                raise Exception(f"Error load CascadeClassifier.\nGiven: {cascadeClassifier}.xml")
+        else:
+            raise Exception(f"CascadeClassifier not found!\nGiven: {cascadeClassifier}.xml")
+
 
         self.frame = None
         self.bucket = None
@@ -60,48 +74,30 @@ class MoodDetection:
         self.time = 0
         self.thread = None
 
-
-    def start(self):
-        if self.started:
-            print("mood runTime is already started")
-        else:
-            self.started = True
-            self.thread = Thread(target=self.runTime, name='MoodDetectionThread', daemon=True)
-            self.thread.start()
-
-    def stop(self):
-        if not self.started:
-            print("mood runTime is already stopped")
-        else:
-            self.started = False
-
     def runTime(self, frame):
-        self.bucket = None
-        startTime = time.time()
-        gray_img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces_detected = self.face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
+        try:
+            self.log.debug(f"Mooddetection runtime incomming frame: {type(frame)}")
+            self.bucket = None
+            startTime = time.time()
+            gray_img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray_img = np.uint8(gray_img)
+            faces_detected = self.face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
+            self.log.debug(f"Mooddetection faces detected: {len(faces_detected)}")
+            for (x, y, w, h) in faces_detected:
+                roi_gray = gray_img[y:y + w, x:x + h]  # cropping region of interest i.e. face area from  image
+                roi_gray = cv2.resize(roi_gray, (48, 48))
+                img_pixels = image.img_to_array(roi_gray)
+                img_pixels = np.expand_dims(img_pixels, axis=0)
+                img_pixels /= 255
+                predictions = self.model.predict(img_pixels)
+                # find max indexed array
+                max_index = np.argmax(predictions[0])
 
-        for (x, y, w, h) in faces_detected:
-            roi_gray = gray_img[y:y + w, x:x + h]  # cropping region of interest i.e. face area from  image
-            roi_gray = cv2.resize(roi_gray, (48, 48))
-            img_pixels = image.img_to_array(roi_gray)
-            img_pixels = np.expand_dims(img_pixels, axis=0)
-            img_pixels /= 255
-            predictions = self.model.predict(img_pixels)
-            # find max indexed array
-            max_index = np.argmax(predictions[0])
-
-            # emotions = ('angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral')
-            """
-            if self.return_emoji:
-                self.bucket = self.emotions_dict.get(max_index).get('emoji')
-            else:
-                self.bucket = self.emotions_dict.get(max_index).get('emotion')
-            """""
-            # self.bucket = self.emotions_dict.get(max_index).get('emotion')
-            self.bucket = {
-                "predictions": predictions.tolist(),
-                "dominant_index": max_index
-                #"dominant_index": (max_index, predictions[max_index])
-            }
-            self.time = round((time.time()-startTime)*1000)
+                self.bucket = {
+                    "predictions": predictions.tolist(),
+                    "dominant_index": max_index
+                    #"dominant_index": (max_index, predictions[max_index])
+                }
+                self.time = round((time.time()-startTime)*1000)
+        except Exception as e:
+            self.log.warning(f"MoodDetection Runtime {e}")
