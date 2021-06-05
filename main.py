@@ -428,6 +428,9 @@ class ASAP:
         else:
             self.result_frame = self.bgMask_frame
 
+        if self.command_mode:
+            self.result_frame = self.print_rect(self.result_frame)
+
         if self.mood() is not None:
             draw_mood()
 
@@ -435,6 +438,19 @@ class ASAP:
             display_vote()
 
         self.frame_q.put(self.result_frame)
+
+    @staticmethod
+    def print_rect(image, color):
+        c = (0,0,0)
+        if color == "green":
+            c = (0,255,0)
+        elif color == "yellow":
+            c = (0,255,255)
+        elif color == "red":
+            c = (0,0,255)
+        image_width, image_height = image.shape[1], image.shape[0]
+        image = cv.rectangle(image, (1, 1), (image_width - 1, image_height - 1), c, 6)
+        return image
 
     def start(self, start=True):
         """
