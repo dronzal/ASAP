@@ -734,9 +734,8 @@ def load_args():
     parser.add_argument(
         '-W', '--width', required=False, type=int, help='Vritual cam weight')
     parser.add_argument(
-        '-l', required=False,
-        default="DEBUG", choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'],
-        type=int, help='Debug level')
+        '-l', '--level', required=False, choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'],
+        default="DEBUG", type=str, help='Debug level')
     args = parser.parse_args()
 
     results = {}
@@ -789,7 +788,7 @@ if __name__ == "__main__":
                         )
 
     # init main app
-    asap = ASAP(ws_name=args.get('name'), logging=logging, debug=args.get("debug"))
+    asap = ASAP(ws_name=args.get('name'), logging=logging)
 
     # start main app in a Thread, main propose is to run as a containerized app
     asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
