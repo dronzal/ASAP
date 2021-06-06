@@ -6,9 +6,7 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 
 <img src="assets/asap.jpg" width="720">
 
-## Installation
-
-First: 
+## Installation 
 ```bash
 # installing venv 
 python3 -m pip install --user virtualenv
@@ -23,9 +21,25 @@ python3 -m venv env
 python3 -m pip install --user -r requirements.txt
 ```
 
+## Start the app
 ```bash
 # View args:
 python3 main.py -h 
+usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HEIGHT] [-W WIDTH] [-l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}]
+
+ASAP, adding AI features on top off your camera stream
+
+optional arguments:
+  -h, --help                       show this help message and exit
+  -n NAME, --name NAME             User name for websocket
+  -d DEBUG, --debug DEBUG          Add debug info to logs/*.log
+  -g GOOGLE_CRED, --google_cred GOOGLE_CRED
+                                   Google credentials file location
+  -H HEIGHT, --height HEIGHT       Vritual cam height
+  -W WIDTH, --width WIDTH          Vritual cam weight
+  -l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}, --level {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}
+                                   Debug level
+
 
 # Run app:
 python3 main.py
@@ -38,6 +52,10 @@ The application needed to be designed to incorporate the results of different fe
 <img src="assets/asap_uml.jpg" width="1080">
 
 >The main purpose of this design is that you can build it into other applications, or extend it with say a GUI, for debugging reasons.
+
+Also the [python logging class](https://docs.python.org/3/library/logging.html) is implemented in this project.
+So it makes debugging lot's easier to do.
+
 
 ## Components
 
