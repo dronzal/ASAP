@@ -6,12 +6,8 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 
 <img src="assets/asap.jpg" width="720">
 
-## Installation
-
-## Installation
-
-First: 
-```bash
+## Installation 
+```console
 # installing venv 
 python3 -m pip install --user virtualenv
 # creating virtual env
@@ -25,19 +21,80 @@ python3 -m venv env
 python3 -m pip install --user -r requirements.txt
 ```
 
-```bash
+## Start the app
+```console
 # View args:
 python3 main.py -h 
+usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HEIGHT] [-W WIDTH] [-l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}]
+
+ASAP, add AI features to your camera stream.
+
+optional arguments:
+  -h, --help                       show this help message and exit
+  -n NAME, --name NAME             User name for websocket
+  -d DEBUG, --debug DEBUG          Add debug info to logs/*.log
+  -g GOOGLE_CRED, --google_cred GOOGLE_CRED
+                                   Google credentials file location
+  -H HEIGHT, --height HEIGHT       Vritual cam height
+  -W WIDTH, --width WIDTH          Vritual cam weight
+  -l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}, --level {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}
+                                   Debug level
+
 
 # Run app:
 python3 main.py
 ```
 
 ## Application
-
+<details>
+<summary>Design</summary>
+<p>
 The application needed to be designed to incorporate the results of different features. After initial performance issues, the following design has proven to be operational. A Threadpool executor controls three of the threads that require the webcam frames as input. Speech recognition runs as thread connected to a Google service. Three further threads control video capture, display and the virtual camera. Finally the client side actions are handled in a thread and another websocket thread takes care of the communication between clients / participants.
 
 <img src="assets/asap_uml.jpg" width="1080">
+
+>The main purpose of this design is that you can build it into other applications, or extend it with say a GUI, for debugging reasons.
+
+Also the [python logging class](https://docs.python.org/3/library/logging.html) is implemented in this project.
+So it makes debugging lot's easier to do.
+</p>
+</details>
+
+<details>
+<summary>Input</summary>
+<p>
+
+#### Video
+The ASAP applications captures frame from your hardware camera with the cv2.VideoCapture class.
+
+```python
+cap = cv2.VideoCapture(0)
+```
+
+#### Sound
+Sound wave are grabbed from the [pyaudio](https://pypi.org/project/PyAudio/) module with the PyAudio class.
+```python
+audio_interface = pyaudio.PyAudio()
+```
+</p>
+</details>
+
+
+<details>
+<summary>Output</summary>
+<p>
+
+A virtual camera with just output frames is used with the [pyvirtualcam](https://github.com/letmaik/pyvirtualcam) module.
+Read first the Github repository before using it.
+
+```python
+with pyvirtualcam.Camera(width=1280, height=720, fps=20) as cam:
+    while True:
+        cam.send(frame)
+        cam.sleep_until_next_frame()
+```
+</p>
+</details>
 
 ## Components
 
@@ -114,8 +171,25 @@ This code makes use of an existing service of Google.
 
 <details><summary>Dynamic Background</summary>
 <p>
-...
-</p>
+<p>
+This feature predict a background mask of the input image.
+
+#### Disclaimer.
+All credits to [Anilsathyan7](https://github.com/anilsathyan7/Portrait-Segmentation) to explain this technique verry well, and share us his repository.   
+Special thanks!
+
+
+#### Research.
+Background masking, is in fact a segmentation technique.  
+To speed up the performance, the model is limited to a binairy class (person or background). Therefor an portrait-selfie [dataset](https://onedrive.live.com/?cid=f5111408123b1d9c&id=F5111408123B1D9C%2115035&authkey=!ADkS4V32BUmspOg) was used.
+
+#### Machine Learning (ML) / Artificial Intelligence (AI)
+The dataset consists of 18698 human portrait images of size 128x128 in RGB format, along with their masks (alphablending). Here we augment the dataset with handpicked (to ensure the dataset quality) portrait images form supervisely dataset. Additionaly, we download random selfie images from web and generate their masks using state-of-the-art deeplab-xception model for semantic segmentation.
+To increase the volume of the dataset and make the model more robustness, additional techniques where used. Some techniques: cropping, adjusting brightness, flipping images, blurring.
+Also since most of the images contain plain background, synthetic images where introduced that change randomly the background from the anotated dataset.
+
+> The result is an backgrond masking feature that runs at 10 fps.
+
 </details>
 
 ## Features

@@ -20,7 +20,6 @@ import argparse
 import asyncio
 import concurrent.futures
 import cv2
-import inspect
 import json
 import keyboard
 import logging
@@ -460,7 +459,7 @@ class ASAP:
         if self.command_mode:
             self.result_frame = self.print_rect(self.result_frame, "green")
 
-        if self.mood() is not None:
+        if self.mood() is not None and not self.black_bg:
             draw_mood()
 
         if self.voting_mode:
@@ -676,20 +675,24 @@ class ASAP:
         self.stt_thread.start()
 
         # Init a thread for the VideoCapture Service.
-        self.videoCap_thread = Thread(target=self.videoCap, daemon=True, name="ASAP_videocap")
+        self.videoCap_thread = Thread(target=self.videoCap, daemon=True,
+                                      name="ASAP_videocap")
         self.videoCap_thread.start()
 
-        self.action_thread = Thread(target=self.actionhandler, daemon=True, name="ASAP_actions")
+        self.action_thread = Thread(target=self.actionhandler, daemon=True,
+                                    name="ASAP_actions")
         self.action_thread.start()
 
-        self.videoShow_thread = Thread(target=self.videoShow, daemon=True, name="ASAP_vidshow")
+        self.videoShow_thread = Thread(target=self.videoShow, daemon=True,
+                                       name="ASAP_vidshow")
         self.videoShow_thread.start()
 
         self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,),
                                         name="ASAP_virtualcam")
         self.virtualCam_thread.start()
 
-        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,), name='"ASAP_websocket')
+        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,),
+                                       name='"ASAP_websocket')
         self.websocket_thread.start()
 
         while self.started:
@@ -759,7 +762,9 @@ def load_args():
         --width
     :return: dict
     """
-    parser = argparse.ArgumentParser(description='ASAP, adding AI features on top off your camera stream')
+
+    parser = argparse.ArgumentParser(prog="tool", description='ASAP, add AI features to your camera stream',
+                                     formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=35))
     parser.add_argument(
         '-n', '--name', required=False, type=str, help='User name for websocket')
     parser.add_argument(
@@ -828,7 +833,7 @@ if __name__ == "__main__":
     # init main app
     asap = ASAP(ws_name=args.get('name'), logging=logging)
 
-    # start main app in a Thread, main propose is to run as a containerized app
+    # start main app in a Thread, main purpose is to run as a containerized app
     asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
 
     # Start the main thread
