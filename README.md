@@ -114,7 +114,22 @@ This code makes use of an existing service of Google.
 
 <details><summary>Dynamic Background</summary>
 <p>
-...
+This feature predict a background mask of the input image.
+
+#### Disclaimer.
+All credits to [Anilsathyan7](https://github.com/anilsathyan7/Portrait-Segmentation) to explain this technique verry well, and share us his repository.
+
+#### Research.
+Background masking, is in fact a segmentation technique.  
+To speed up the performance, the model is limited to a binairy class (person or background). Therefor an portrait-selfie [dataset](https://onedrive.live.com/?cid=f5111408123b1d9c&id=F5111408123B1D9C%2115035&authkey=!ADkS4V32BUmspOg) was used.
+
+#### Machine Learning (ML) / Artificial Intelligence (AI)
+The dataset consists of 18698 human portrait images of size 128x128 in RGB format, along with their masks (alphablending). Here we augment the dataset with handpicked (to ensure the dataset quality) portrait images form supervisely dataset. Additionaly, we download random selfie images from web and generate their masks using state-of-the-art deeplab-xception model for semantic segmentation.
+To increase the volume of the dataset and make the model more robustness, additional techniques where used. Some techniques: cropping, adjusting brightness, flipping images, blurring. 
+Also since most of the images contain plain background, synthetic images where introduced that change randomly the background from the anotated dataset.
+
+> The result is an backgrond masking feature that runs at 10 fps.
+
 </p>
 </details>
 
