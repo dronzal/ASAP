@@ -646,20 +646,24 @@ class ASAP:
         self.stt_thread.start()
 
         # Init a thread for the VideoCapture Service.
-        self.videoCap_thread = Thread(target=self.videoCap, daemon=True, name="ASAP_videocap")
+        self.videoCap_thread = Thread(target=self.videoCap, daemon=True,
+                                      name="ASAP_videocap")
         self.videoCap_thread.start()
 
-        self.action_thread = Thread(target=self.actionhandler, daemon=True, name="ASAP_actions")
+        self.action_thread = Thread(target=self.actionhandler, daemon=True,
+                                    name="ASAP_actions")
         self.action_thread.start()
 
-        self.videoShow_thread = Thread(target=self.videoShow, daemon=True, name="ASAP_vidshow")
+        self.videoShow_thread = Thread(target=self.videoShow, daemon=True,
+                                       name="ASAP_vidshow")
         self.videoShow_thread.start()
 
         self.virtualCam_thread = Thread(target=self.virtualCam, daemon=True, args=(self.frame_q,),
                                         name="ASAP_virtualcam")
         self.virtualCam_thread.start()
 
-        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,), name='"ASAP_websocket')
+        self.websocket_thread = Thread(target=self.websocket, args=(self.websocket_q,),
+                                       name='"ASAP_websocket')
         self.websocket_thread.start()
 
         while self.started:
@@ -798,7 +802,7 @@ if __name__ == "__main__":
     # init main app
     asap = ASAP(ws_name=args.get('name'), logging=logging)
 
-    # start main app in a Thread, main propose is to run as a containerized app
+    # start main app in a Thread, main purpose is to run as a containerized app
     asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
 
     # Start the main thread

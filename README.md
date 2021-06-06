@@ -39,6 +39,7 @@ The application needed to be designed to incorporate the results of different fe
 
 <img src="assets/asap_uml.jpg" width="1080">
 
+The main prop
 ## Components
 
 Please click for further details:
