@@ -114,6 +114,7 @@ This code makes use of an existing service of Google.
 
 <details><summary>Dynamic Background</summary>
 <p>
+  
 This feature predict a background mask of the input image.
 
 #### Disclaimer.
