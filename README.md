@@ -114,7 +114,7 @@ This code makes use of an existing service of Google.
 
 <details><summary>Dynamic Background</summary>
 <p>
-  
+<p>
 This feature predict a background mask of the input image.
 
 #### Disclaimer.
@@ -126,12 +126,11 @@ To speed up the performance, the model is limited to a binairy class (person or 
 
 #### Machine Learning (ML) / Artificial Intelligence (AI)
 The dataset consists of 18698 human portrait images of size 128x128 in RGB format, along with their masks (alphablending). Here we augment the dataset with handpicked (to ensure the dataset quality) portrait images form supervisely dataset. Additionaly, we download random selfie images from web and generate their masks using state-of-the-art deeplab-xception model for semantic segmentation.
-To increase the volume of the dataset and make the model more robustness, additional techniques where used. Some techniques: cropping, adjusting brightness, flipping images, blurring. 
+To increase the volume of the dataset and make the model more robustness, additional techniques where used. Some techniques: cropping, adjusting brightness, flipping images, blurring.
 Also since most of the images contain plain background, synthetic images where introduced that change randomly the background from the anotated dataset.
 
 > The result is an backgrond masking feature that runs at 10 fps.
 
-</p>
 </details>
 
 ## Features
