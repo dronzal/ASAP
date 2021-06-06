@@ -118,7 +118,9 @@ This code makes use of an existing service of Google.
 This feature predict a background mask of the input image.
 
 #### Disclaimer.
-All credits to [Anilsathyan7](https://github.com/anilsathyan7/Portrait-Segmentation) to explain this technique verry well, and share us his repository.
+All credits to [Anilsathyan7](https://github.com/anilsathyan7/Portrait-Segmentation) to explain this technique verry well, and share us his repository.   
+Special thanks!
+
 
 #### Research.
 Background masking, is in fact a segmentation technique.  
