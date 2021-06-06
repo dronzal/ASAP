@@ -4,6 +4,7 @@ Source: https://github.com/anilsathyan7/Portrait-Segmentation
 
 import numpy as np
 import cv2
+from random import randint
 import time
 from tensorflow.keras.models import load_model
 import os
@@ -28,8 +29,7 @@ class BackgroundMask:
         self.bg_path = bg_im_path
         self.bg_list = self.get_bg(self.bg_path)
         self.bg_current = 0
-        self.change_bgd()
-
+        self.change_bgd(idx=randint(0, (len(self.bg_list)-1)))
         self.time = 0
         self.started = None
         self.bucket = None
