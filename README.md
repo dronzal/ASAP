@@ -7,7 +7,7 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 <img src="assets/asap.jpg" width="720">
 
 ## Installation 
-```shell
+```console
 # installing venv 
 python3 -m pip install --user virtualenv
 # creating virtual env
@@ -22,7 +22,7 @@ python3 -m pip install --user -r requirements.txt
 ```
 
 ## Start the app
-```
+```console
 # View args:
 python3 main.py -h 
 usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HEIGHT] [-W WIDTH] [-l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}]
