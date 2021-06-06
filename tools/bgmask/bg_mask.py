@@ -5,7 +5,6 @@ from tensorflow.keras.models import load_model
 
 import os
 
-
 class BackgroundMask:
 
     def __init__(self, log, model="models/segmentation/deconv_bnoptimized_munet.h5", bg_im_path="bg_im/"):

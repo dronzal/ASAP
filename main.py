@@ -19,7 +19,6 @@ import argparse
 import asyncio
 import concurrent.futures
 import cv2
-import inspect
 import json
 import keyboard
 import logging
@@ -431,7 +430,7 @@ class ASAP:
         if self.command_mode:
             self.result_frame = self.print_rect(self.result_frame, "green")
 
-        if self.mood() is not None:
+        if self.mood() is not None and not self.black_bg:
             draw_mood()
 
         if self.voting_mode:
