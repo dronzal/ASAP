@@ -8,8 +8,6 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 
 ## Installation
 
-## Installation
-
 First: 
 ```bash
 # installing venv 
