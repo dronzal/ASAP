@@ -22,7 +22,7 @@ python3 -m pip install --user -r requirements.txt
 ```
 
 ## Start the app
-```bash
+```
 # View args:
 python3 main.py -h 
 usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HEIGHT] [-W WIDTH] [-l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}]
