@@ -59,15 +59,41 @@ Also the [python logging class](https://docs.python.org/3/library/logging.html) 
 So it makes debugging lot's easier to do.
 </p>
 </details>
+
 <details>
-<summary>Inputs</summary>
+<summary>Input</summary>
 <p>
-The ASAP applications captures frame from your hardware camera.python
+
+#### Video
+The ASAP applications captures frame from your hardware camera with the cv2.VideoCapture class.
+
 ```python
 cap = cv2.VideoCapture(0)
 ```
-</p>
 
+#### Sound
+Sound wave are grabbed from the [pyaudio](https://pypi.org/project/PyAudio/) module with the PyAudio class.
+```python
+audio_interface = pyaudio.PyAudio()
+```
+</p>
+</details>
+
+
+<details>
+<summary>Output</summary>
+<p>
+
+A virtual camera with just output frames is used with the [pyvirtualcam](https://github.com/letmaik/pyvirtualcam) module.
+Read first the Github repository before using it.
+
+```python
+with pyvirtualcam.Camera(width=1280, height=720, fps=20) as cam:
+    while True:
+        cam.send(frame)
+        cam.sleep_until_next_frame()
+```
+</p>
 </details>
 
 ## Components
