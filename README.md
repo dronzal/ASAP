@@ -7,7 +7,7 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 <img src="assets/asap.jpg" width="720">
 
 ## Installation 
-```bash
+```shell
 # installing venv 
 python3 -m pip install --user virtualenv
 # creating virtual env
