@@ -1,3 +1,7 @@
+"""
+Source: https://github.com/anilsathyan7/Portrait-Segmentation
+"""
+
 import numpy as np
 import cv2
 import time
@@ -75,7 +79,6 @@ class BackgroundMask:
     def runTime(self, frame):
         try:
             self.bucket = None
-            # Check if frame is op type <class 'numpy.ndarray'>
             startTime = time.time()
 
             # Pre-process
