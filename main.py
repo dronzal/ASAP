@@ -74,6 +74,12 @@ class ASAP:
         self.voting_mode = True
         self.vote_text = ""
 
+        self.action = False
+        self.action_time = None
+        self.action_time_max = 2  # Time between one action and the next gesture action executed
+
+        self.cnt = 0
+
         self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3), dtype=np.float32)
         self.bgMask_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3), dtype=np.float32)
         self.gesture_result = None
@@ -269,8 +275,10 @@ class ASAP:
         if re.search(r"\b(option 1|option A)\b", tmp, re.I):
             self.vote_text = "A"
 
-
     def toggle_command_mode(self, activate):
+        """
+        Changes command_mode between True and False and resets all action variables
+        """
         if activate:
             self.command_mode = True
         else:
@@ -289,57 +297,74 @@ class ASAP:
     def gesture_action(self, tmp: dict):
         """
         This is the action function for the gesture recognition
-
-
         """
+        # Translate the results dictionary for gestures into a String
         for key in tmp.keys():
             li = tmp[key]['gesture']
             self.gesture_result = ' | '.join([str(elem) for elem in li])
 
-        # Only one action per cycle
-        action = False
+        # Only one action per cycle and no action for some time after action done
+        if self.action:
+            if not isinstance(self.action_time, type(None)):
+                if (time.time() - self.action_time >= self.action_time_max):
+                    self.action = False
+                    #print("=> Action timer reset: ", int(time.time() - self.action_time))
+                    self.action_time = None
 
-        if re.search(r"\bCommand mode on\b", self.gesture_result, re.I):
-            if action: pass
-            self.toggle_command_mode(True)
-            action = True
-
+        # Potentially send "Command mode off" directly from Gesture detection
         if re.search(r"\bCommand mode off\b", self.gesture_result, re.I):
-            if action: pass
-            self.toggle_command_mode(False)
-            action = True
+            if not self.action:
+                self.toggle_command_mode(False)
+            self.action = True
 
+        # Use OK sign to switch off Command mode
         if re.search(r"\bOK\b", self.gesture_result, re.I):
-            if action: pass
-            self.toggle_command_mode(False)
-            action = True
+            if not self.action:
+                self.toggle_command_mode(False)
+            self.action = True
 
+        # Switch on Command mode
+        if re.search(r"\bCommand mode on\b", self.gesture_result, re.I):
+            if not self.action:
+                self.toggle_command_mode(True)
+            self.action = True
+
+        # Change background one way
         if re.search(r"\b(Background-Left)\b", self.gesture_result, re.I):
-            if action: pass
-            self.change_up_bgMask = True
-            action = True
+            if not self.action:
+                self.change_up_bgMask = True
+            self.action = True
 
+        # Change background the other way
         if re.search(r"\b(Background-Right)\b", self.gesture_result, re.I):
-            if action: pass
-            self.change_down_bgMask = True
-            action = True
+            if not self.action:
+                self.change_down_bgMask = True
+            self.action = True
 
+        # Turn camera to black
         if re.search(r"\b(Camera-Off)\b", self.gesture_result, re.I):
-            if action: pass
-            self.set_black_bg = True
-            action = True
+            if not self.action:
+                self.set_black_bg = True
+            self.action = True
 
-        if re.search(r"\b(Mute)\b", self.gesture_result, re.I):
-            if action: pass
-            self.mute = True
-            action = True
-
+        # Reset mute and black camera
         if re.search(r"\b(Unmute/Camera-On)\b", self.gesture_result, re.I):
-            if action: pass
-            self.unset_black_bg = True
-            self.unmute = True
-            action = True
+            if not self.action:
+                self.unset_black_bg = True
+                self.unmute = True
+            self.action = True
 
+        # Mute
+        if re.search(r"\b(Mute)\b", self.gesture_result, re.I):
+            if not self.action:
+                self.mute = True
+            self.action = True
+
+        # Start action timer
+        if self.action:
+            if isinstance(self.action_time, type(None)):
+                self.action_time = time.time()
+                #print("=> Action timer started: ", self.action_time)
 
     def build_actions(self):
         """
@@ -366,31 +391,38 @@ class ASAP:
                 self.unmute = False
 
             if self.change_bgMask:
+                print("change bg random")
                 self.bgMask.change_bgd(random.randint(0, len(self.bgMask.bg_list)))
                 self.change_bgMask = False
 
             if self.set_black_bg:
+                print("set black")
                 self.black_bg = True
                 self.set_black_bg = False
 
             if self.unset_black_bg:
+                print("unmute/camera on")
                 self.black_bg = False
                 self.unset_black_bg = False
 
             if self.change_up_bgMask:
+                print("change bg one way")
                 self.bgMask.change_bgd(self.bgMask.bg_current + 1)
                 self.change_up_bgMask = False
 
             if self.change_down_bgMask:
+                print("change bg other way")
                 self.bgMask.change_bgd(self.bgMask.bg_current - 1)
                 self.change_down_bgMask = False
 
             if self.transcript_mode_on:
+                print("transcript mode")
                 self.transcript_mode = True
                 self.transcript_mode_on = False
                 self.transcript_done = True
 
             if self.transcript_mode_off:
+                print("transcript mode off")
                 self.transcript_mode = False
                 self.transcript_mode_off = False
                 self.transcript_done = True
@@ -446,7 +478,6 @@ class ASAP:
 
         if self.black_bg:
             self.result_frame = np.zeros(shape=(self.cam_height, self.cam_width, 3))
-
         elif self.show_gesture_debug:
             if isinstance(self.gesture.debug_frame, ndarray):
                 self.result_frame = self.gesture.debug_frame
@@ -478,6 +509,7 @@ class ASAP:
             c = (0,0,255)
         image_width, image_height = image.shape[1], image.shape[0]
         image = cv2.rectangle(image, (1, 1), (image_width - 1, image_height - 1), c, 6)
+        cv2.putText(image, "Command Mode", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, c, 1, cv2.LINE_AA)
         return image
 
     def start(self, start=True):

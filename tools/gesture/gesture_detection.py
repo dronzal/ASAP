@@ -89,11 +89,8 @@ class GestureDetection:
         self.bucket = None
         self.debug_frame = None
 
-        self.command_mode = None
+        self.command_mode = False
         self.command = ""
-        self.command_off = ""
-        self.command_time = None
-        self.command_time_max = 10
 
     def runTime(self, frame):
         """ Runtime execution
@@ -119,13 +116,7 @@ class GestureDetection:
             results = self.hands.process(image)
             image.flags.writeable = True
 
-            # Send command mode off when time limit reached
-            if not isinstance(self.command_time, type(None)):
-                if self.command_mode:
-                    if (time.time() - self.command_time > self.command_time_max):
-                        self.command_time = None
-                        self.command_mode = False
-                        self.command_off = "Command mode off"
+            self.command = ""
 
             # When hand detected:
             if not isinstance(results.multi_hand_landmarks, type(None)):
@@ -134,7 +125,6 @@ class GestureDetection:
 
                 if len(results.multi_hand_landmarks) == 2:
                     self.command_mode = True
-                    self.command_time = time.time()
                     self.command = "Command mode on"
                 else:
                     self.command = ""
@@ -158,6 +148,8 @@ class GestureDetection:
                     # Run keypoint_classifier model and write to point history deque if hand sign id = 2
                     hand_sign_id = self.keypoint_classifier(pre_processed_landmark_list)
 
+                    hand_sign = self.keypoint_classifier_labels[hand_sign_id]
+
                     if hand_sign_id == 2:  # Index finger raised
                         self.point_history.append(landmark_list[8])
                     else:
@@ -177,8 +169,7 @@ class GestureDetection:
                     thumb, recognized_sum = self.recognize_hand_gesture(image, cx, cy, hand_landmarks, handedness)
 
                     tmp[counter] = {"gesture": [self.command,
-                                                self.command_off,
-                                                self.keypoint_classifier_labels[hand_sign_id],
+                                                hand_sign,
                                                 recognized_sum,
                                                 thumb,
                                                 #self.point_history_classifier_labels[most_common_fg_id[0][0]]
@@ -198,7 +189,6 @@ class GestureDetection:
                 self.bucket = tmp
                 self.log.info(f"Result {tmp}")
                 self.command = ""
-                self.command_off = ""
             else:
                 self.point_history.append([0, 0])  # No hand visible on the screen
 
@@ -396,7 +386,6 @@ class GestureDetection:
         Draw information on detected hand sign and finger gesture
         :param image: Handover image to write on
         :param brect: Calculated rectangle that covers the hand area
-        :param handedness: Left/right handedness as derived from Mediapipe
         :param hand_sign_text: The detected hand sign
         :param finger_gesture_text: The detected finger gesture
         :return: Adapted image
