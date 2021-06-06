@@ -46,7 +46,9 @@ python3 main.py
 ```
 
 ## Application
-
+<details>
+<summary>Design</summary>
+<p>
 The application needed to be designed to incorporate the results of different features. After initial performance issues, the following design has proven to be operational. A Threadpool executor controls three of the threads that require the webcam frames as input. Speech recognition runs as thread connected to a Google service. Three further threads control video capture, display and the virtual camera. Finally the client side actions are handled in a thread and another websocket thread takes care of the communication between clients / participants.
 
 <img src="assets/asap_uml.jpg" width="1080">
@@ -55,7 +57,18 @@ The application needed to be designed to incorporate the results of different fe
 
 Also the [python logging class](https://docs.python.org/3/library/logging.html) is implemented in this project.
 So it makes debugging lot's easier to do.
+</p>
+</details>
+<details>
+<summary>Inputs</summary>
+<p>
+The ASAP applications captures frame from your hardware camera.python
+```python
+cap = cv2.VideoCapture(0)
+```
+</p>
 
+</details>
 
 ## Components
 
