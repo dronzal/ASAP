@@ -27,7 +27,7 @@ python3 -m pip install --user -r requirements.txt
 python3 main.py -h 
 usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HEIGHT] [-W WIDTH] [-l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}]
 
-ASAP, adding AI features on top off your camera stream
+ASAP, add AI features to your camera stream.
 
 optional arguments:
   -h, --help                       show this help message and exit

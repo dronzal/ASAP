@@ -734,7 +734,7 @@ def load_args():
     :return: dict
     """
 
-    parser = argparse.ArgumentParser(prog="tool", description='ASAP, adding AI features on top off your camera stream',
+    parser = argparse.ArgumentParser(prog="tool", description='ASAP, add AI features to your camera stream',
                                      formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=35))
     parser.add_argument(
         '-n', '--name', required=False, type=str, help='User name for websocket')
