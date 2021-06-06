@@ -39,7 +39,8 @@ The application needed to be designed to incorporate the results of different fe
 
 <img src="assets/asap_uml.jpg" width="1080">
 
-The main prop
+>The main purpose of this design is that you can build it into other applications, or extend it with say a GUI, for debugging reasons.
+
 ## Components
 
 Please click for further details:
