@@ -114,9 +114,11 @@ published under Apache 2.0 licence: https://github.com/Kazuhito00/hand-gesture-r
 
 #### Research
 The initial setup was clarified relatively quickly: The gesture recognition needed to be able to identify hands in webcam frames that are passed by the central application. In order to be able to interact with the user, the results need a way to be displayed on the image that is returned to the central application (or annotation added there), before beeing sent via virtual camera to the standard videoconferencing application (MS Teams or Discord).  
-The initial research discovered multiple datasets where hand gestures were collected and used to train Neural Networks. Examples are the 20GB Jester Dataset
-https://20bn.com/datasets/jester/v1 or the egocentric gesture dataset EgoGesture http://www.nlpr.ia.ac.cn/iva/yfzhang/datasets/egogesture.html. Using these well documented datasets and the models that made use of them, the first idea how to approach the gesture recognition was formed. However, given the size of these datsets, Convolutional Neural Network processing was expected high in training time and effort. Other options to efficiently recognize the hands were to use RGB values detection, edge detection or background subtraction. All of these options would have required effort to build, test and validate the hand recognition before beeing able to get to gesture detection.  
+<p />
+The initial research discovered multiple datasets where hand gestures were collected and used to train Neural Networks. Examples are the 20GB Jester Dataset https://20bn.com/datasets/jester/v1 or the egocentric gesture dataset EgoGesture http://www.nlpr.ia.ac.cn/iva/yfzhang/datasets/egogesture.html. Using these well documented datasets and the models that made use of them, the first idea how to approach the gesture recognition was formed. However, given the size of these datsets, Convolutional Neural Network processing was expected high in training time and effort. Other options to efficiently recognize the hands were to use RGB values detection, edge detection or background subtraction. All of these options would have required effort to build, test and validate the hand recognition before beeing able to get to gesture detection.  
+<p />
 Luckily, Google Mediapipe was discovered. It is a relative lightweight Machine Learning solution that recognizes hands (amongst others) and is available as Python library https://google.github.io/mediapipe/solutions/hands#python-solution-api. Having the possible to translate hands and fingers into coordinates, the next step was to search for gesture detection solutions on Github. The above linked framework by Kazuhito00 provided a well documented approach using the coordinates as input and two Neural Networks, one for gesture detection and one for (index) finger movement detection. In the original solution, the functionality to save a time series of hand gestures and coordinates and to use it to train the Neural Network was available in a Jupyter Notebook.  
+<p />
 Inspired by the second repository by kinivi linked above, additional hand gestures were trained. Due to the existing translation in coordinates, the Neural Network is very simple and provides a high detection accuracy at very low sample size.
 
 #### Machine Learning (ML) / Artificial Intelligence (AI)
@@ -188,7 +190,7 @@ The dataset consists of 18698 human portrait images of size 128x128 in RGB forma
 To increase the volume of the dataset and make the model more robustness, additional techniques where used. Some techniques: cropping, adjusting brightness, flipping images, blurring.
 Also since most of the images contain plain background, synthetic images where introduced that change randomly the background from the anotated dataset.
 
-> The result is an backgrond masking feature that runs at 10 fps.
+> The result is an background masking feature that runs at 10 fps.
 
 </details>
 
