@@ -469,7 +469,7 @@ class ASAP:
             color = (0, 0, 0)
             thickness = 5
             cv2.putText(self.result_frame, self.mood(getIndex=False).get('emotion'),
-                        (int(xPositionEmojiLine), int(yPositionTop - heightLine - 20)),
+                        (int(xPositionEmojiLine-25), int(yPositionTop - heightLine - 20)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             self.result_frame = cv2.line(self.result_frame, start_point, end_point, color, thickness)
             self.result_frame = cv2.circle(self.result_frame,

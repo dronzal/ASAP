@@ -1,2 +1,7 @@
 docs/.vuepress/dist
 node_modules/
+./google_credentials.json
+venv/
+__pycache__/
+.idea/
+logs/
