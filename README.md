@@ -200,6 +200,29 @@ however there is still room for improvement.
 This code makes use of an existing service of Google.   
 * The service can be found at: https://cloud.google.com/speech-to-text  
 * The basic code can be found on GitHub: https://github.com/googleapis/python-speech/tree/master/samples  
+  
+#### Research
+Like mentioned during the introduction of this part, we were not able to make a speech recognition model by 
+ourselves. An attempt was made by using the DeepSpeech project (https://github.com/mozilla/DeepSpeech).
+It offers some pre-trained models, but it is also possible to train your own model. The model is trained by using 
+TensorFlow and it is highly recommended to activate the GPU support. More information on creating an own speech 
+recognition model can be found here: https://deepspeech.readthedocs.io/en/r0.9/TRAINING.html
+
+It was hard and time-consuming to create an own model, and it would not be possible to include one of our features.
+The feature of writing down a transcript would not be possible to have if a self trained model was used. Besides
+the possible reduction on amount of features, the results produced by the model were not very satisfying. The 
+trained sentences and commands, to be used for interaction with our application, were not recognised properly.
+
+Therefor, a switch was made to the Google service for speech recognition (https://cloud.google.com/speech-to-text).
+It is possible to sign up to test the service for free. The duration of the free test period
+is long enough to finish this project. It is possible to use very specific trained models for
+selected applications like for video and phone calls. However, these do not follow the
+standard billing. Therefore, the default model for streaming speech recognition was selected.
+This should fit our needs.
+
+Even with the powerful model of Google, we encounter still that some words or sentences are
+not recognised in a proper way. This shows that it would be very hard to train an own, well 
+performing model.
 * #### Machine Learning (ML) / Artificial Intelligence (AI)  
 @TODO further writing, now just keywords.  
 * Streaming speech recognition       
@@ -209,6 +232,8 @@ This code makes use of an existing service of Google.
     
 * using returned string  
 #### Further Interesting Links  
+
+https://github.com/mozilla/DeepSpeech
   
 </p>  
 </details>  
