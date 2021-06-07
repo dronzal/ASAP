@@ -58,7 +58,6 @@ class MoodDetection:
             gray_img = np.uint8(gray_img)
             faces_detected = self.face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
             self.log.debug(f"Faces detected: {len(faces_detected)}")
-            print(faces_detected == ())
             if faces_detected == ():
                 self.bucket = {
                     "predictions": [],

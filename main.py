@@ -783,7 +783,7 @@ class ASAP:
                             "bgMask": self.bgMask.time,
                             "visionMd": self.visionMd.time,
                             "gesture": self.gesture.time, }
-            self.log.debug = f"timings: {self.timings}"
+            self.log.debug(f"timings: {self.timings}")
 
             # Set timings to zero
             self.bgMask.time = 0
