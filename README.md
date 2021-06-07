@@ -107,6 +107,7 @@ For further information, see the [v4l2loopback documentation](https://github.com
 # copy from github
 git clone https://github.com/Puude/ASAP
 
+# Change directory
 cd ASAP
 
 # installing venv 
