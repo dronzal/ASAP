@@ -104,11 +104,18 @@ For further information, see the [v4l2loopback documentation](https://github.com
   
 ## Installation 
 ```console  
-# installing venv python3 -m pip install --user virtualenv  
+# installing venv 
+python3 -m pip install --user virtualenv  
+
 # creating virtual env  
 python3 -m venv env  
+
 # activating virtual env  
- # ------FOR LINUX/MAC---------# source env/bin/activate # -------FOR WINDOWS----------# .\env\Scripts\activate# install requirements  
+ # ------FOR LINUX/MAC---------# 
+   source env/bin/activate 
+ # -------FOR WINDOWS----------# 
+   .\env\Scripts\activate# install requirements  
+  
 python3 -m pip install --user -r requirements.txt  
 ```  
   
