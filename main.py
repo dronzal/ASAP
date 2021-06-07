@@ -294,6 +294,7 @@ class ASAP:
         self.mute = False
         self.unmute = False
         self.show_gesture_debug = False
+        self.vote_text = ""
 
     def gesture_action(self, tmp: dict):
         """
@@ -383,13 +384,13 @@ class ASAP:
         if self.command_mode:
             if self.mute:
                 print("muted")
-                keyboard.press_and_release('ctrl+shift+m')
                 self.mute = False
+                keyboard.press_and_release('ctrl+shift+m')
 
             if self.unmute:
                 print("unmuted")
-                keyboard.press_and_release('ctrl+shift+m')
                 self.unmute = False
+                keyboard.press_and_release('ctrl+shift+m')
 
             if self.change_bgMask:
                 print("change bg random")
@@ -432,9 +433,10 @@ class ASAP:
             if not self.transcript_done:
                 date_time_obj = datetime.now()
                 timestamp_str = date_time_obj.strftime("%d-%b-%Y %H:%M:%S")
+                self.transcript_done = True
                 keyboard.write(self.ws_name + " at " + timestamp_str + ": ")
                 keyboard.write(self.stt_result + "\n")
-                self.transcript_done = True
+
 
     @staticmethod
     def flip_frame(frame):
