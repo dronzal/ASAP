@@ -36,10 +36,11 @@ import websockets
 
 class ASAP:
 
-    def __init__(self, ws_name, logging, cam_width=640, cam_height=480):
+    def __init__(self, ws_name, logging, cam_width=640, cam_height=480, flip_frame=False):
 
         self.ws_name = ws_name
         self.log = logging
+        self.flip_end_frame = flip_frame
 
         self.stt = STT.SpeechToText(google_credentials_file="./google_credentials.json")
         self.bgMask = bgm.BackgroundMask(log=self.log)
@@ -496,6 +497,9 @@ class ASAP:
         if self.voting_mode:
             display_vote()
 
+        if self.flip_end_frame:
+            self.result_frame = self.flip_frame(self.result_frame)
+
         self.frame_q.put(self.result_frame)
 
     @staticmethod
@@ -813,6 +817,8 @@ def load_args():
     parser.add_argument(
         '-l', '--level', required=False, choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'],
         default="DEBUG", type=str, help='Debug level')
+    parser.add_argument(
+        '-f', '--flip_frame', required=False, default=False, type=int, help='Flip frame vertically')
     args = parser.parse_args()
 
     results = {}
@@ -843,6 +849,8 @@ def load_args():
                   "DEBUG": 10,
                   "NOTSET": 0}
         results['level'] = levels.get((str(args.level).upper()))
+    if args.flip_frame is not None:
+        results['flip_frame'] = args.flip_frame
 
     return results
 
@@ -865,7 +873,7 @@ if __name__ == "__main__":
                         )
 
     # init main app
-    asap = ASAP(ws_name=args.get('name'), logging=logging)
+    asap = ASAP(ws_name=args.get('name'), logging=logging, flip_frame= args.get('flip_frame'))
 
     # start main app in a Thread, main purpose is to run as a containerized app
     asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
