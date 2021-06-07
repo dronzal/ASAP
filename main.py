@@ -742,11 +742,13 @@ class ASAP:
 
             if not isinstance(self.visionMd.bucket, type(None)):
                 self.result_queue.put({"mood": self.visionMd.bucket})
-                self.websocket_q.put({
-                    "action": "mood",
-                    "name": self.ws_name,
-                    "payload": self.visionMd.bucket.get("predictions")
-                })
+                now = datetime.now()
+                if now.second % 5 == 0:
+                    self.websocket_q.put({
+                        "action": "mood",
+                        "name": self.ws_name,
+                        "payload": self.visionMd.bucket.get("predictions")
+                    })
                 self.visionMd.bucket = None
 
             if not isinstance(self.gesture.bucket, type(None)):
