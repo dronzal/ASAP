@@ -48,8 +48,10 @@ audio_interface = pyaudio.PyAudio()
 A virtual camera with just output frames is used with the [pyvirtualcam](https://github.com/letmaik/pyvirtualcam) module.  
 Read first the Github repository before using it.   
 ```python  
-with pyvirtualcam.Camera(width=1280, height=720, fps=20) as cam:  
- while True: cam.send(frame) cam.sleep_until_next_frame()
+with pyvirtualcam.Camera(width=1280, height=720, fps=20) as cam:
+    while True:
+        cam.send(frame) 
+        cam.sleep_until_next_frame()
  ```  
   
 <details>  
