@@ -104,6 +104,11 @@ For further information, see the [v4l2loopback documentation](https://github.com
   
 ## Installation 
 ```console  
+# copy from github
+git clone https://github.com/Puude/ASAP
+
+cd ASAP
+
 # installing venv 
 python3 -m pip install --user virtualenv  
 
