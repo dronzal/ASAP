@@ -58,11 +58,7 @@ class MoodDetection:
             gray_img = np.uint8(gray_img)
             faces_detected = self.face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)
             self.log.debug(f"Faces detected: {len(faces_detected)}")
-            if faces_detected == ():
-                self.bucket = {
-                    "predictions": [],
-                    "dominant_index": -1
-                }
+
             for (x, y, w, h) in faces_detected:
                 roi_gray = gray_img[y:y + w, x:x + h]  # cropping region of interest i.e. face area from  image
                 roi_gray = cv2.resize(roi_gray, (48, 48))

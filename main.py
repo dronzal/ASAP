@@ -32,6 +32,7 @@ import re
 import sys
 import time
 import websockets
+import traceback
 
 
 class ASAP:
@@ -169,8 +170,8 @@ class ASAP:
 
                     self.last_time_action = t
                 time.sleep(self.while_delay)
-            except Exception as e:
-                self.log.warning(f"{e}")
+            except Exception:
+                self.log.warning(f"{traceback.format_exc()}")
 
     def stt_actions(self, tmp: str):
         """
