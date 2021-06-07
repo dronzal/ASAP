@@ -601,8 +601,7 @@ class ASAP:
                 asyncio.get_event_loop().run_until_complete(start_ws())
             except Exception as e:
                 self.log.warning(f"{e}")
-            time.sleep(1)
-        time.sleep(1)
+            time.sleep(5)
 
     @property
     def bg_mask_frame(self):
@@ -700,7 +699,7 @@ class ASAP:
         ASAP runtime. Runs forever if self.started is True.
         :return:
         """
-        self.log.debug(f"Init runtime")
+        self.log.debug("Init runtime")
         # Init a thread for the Speech to Text service, and pass the queue.
         self.stt_thread = Thread(target=self.stt.runTime, args=(self.result_queue, self.lock, self.log),
                                  name="ASAP_stt", daemon=True)
@@ -778,6 +777,7 @@ class ASAP:
                             "bgMask": self.bgMask.time,
                             "visionMd": self.visionMd.time,
                             "gesture": self.gesture.time, }
+            self.log.debug = f"timings: {self.timings}"
 
             # Set timings to zero
             self.bgMask.time = 0
