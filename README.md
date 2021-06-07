@@ -127,7 +127,13 @@ python3 main.py -h usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HE
 ASAP, add AI features to your camera stream.  
   
 Otional arguments:  
- -h, --help                       show this help message and exit -n NAME, --name NAME             User name for websocket -d DEBUG, --debug DEBUG          Add debug info to logs/*.log -g GOOGLE_CRED, --google_cred GOOGLE_CRED Google credentials file location -H HEIGHT, --height HEIGHT       Virtual cam height -W WIDTH, --width WIDTH          Virtual cam weight -l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}, --level {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET} Debug level  
+ -h, --help                       show this help message and exit 
+ -n NAME, --name NAME             User name for websocket 
+ -d DEBUG, --debug DEBUG          Add debug info to logs/*.log 
+ -g GOOGLE_CRED, --google_cred GOOGLE_CRED Google credentials file location 
+ -H HEIGHT, --height HEIGHT       Virtual cam height 
+ -W WIDTH, --width WIDTH          Virtual cam weight 
+ -l, --level {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET} Debug level  
   
 # Run app:  
 python3 main.py  
