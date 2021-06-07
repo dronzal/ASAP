@@ -284,7 +284,7 @@ saying _the italic words_, gesture commands are activated by doing
   * _command mode on_  
 * Cancel command mode:   
   * **Show two hands again**  
- * _command mode off_  
+  * _command mode off_  
 </p>  
 </details>   
   
@@ -294,16 +294,16 @@ saying _the italic words_, gesture commands are activated by doing
    
 * Mute the microphone:   
   * **Show flat palm of one hand**  
- * _mute_ or _toggle mute_ when unmuted   
+  * _mute_ or _toggle mute_ when unmuted   
 * Un-mute the microphone:   
   * **Make an upward fist**  
- * _unmute_ or _toggle mute_ when muted   
+  * _unmute_ or _toggle mute_ when muted   
 * Increase the volume:   
   * **Index finger up (and thumb to the side)**  
- * _volume up_  
+  * _volume up_  
 * Decrease the volume:   
   * **Index finger down (and thumb to the side)**  
- * _volume down_  
+  * _volume down_  
 </p>  
 </details>   
   
@@ -313,10 +313,10 @@ saying _the italic words_, gesture commands are activated by doing
    
 * Black out the Camera:   
   * **Point fist at the camera**  
- * _camera off_  
+  * _camera off_  
 * Return to Webcam display:   
   * **Show upwards fist (same as un-mute)**  
- * _camera on_  
+  * _camera on_  
 </p>  
 </details>   
   
@@ -326,10 +326,10 @@ saying _the italic words_, gesture commands are activated by doing
    
 * Change the Background one-forward:   
   * **Fist with thumb to one side**  
- * _background right_  
+  * _background right_  
 * Change the Background one-backward:   
   * **Fist with thumb to the other side**  
- * _background left_  
+  * _background left_  
 * Change the Background to a random one:  
   * _change background_  
 </p>  
@@ -341,11 +341,11 @@ saying _the italic words_, gesture commands are activated by doing
    
 * Begin a voting process:   
   * **Victory sign**  
- * _voting on_  
+  * _voting on_  
 * Set the number of options:   
   * Indicate yes/no question:   
      * **Thumbs-up sign**  
- * **Show number of fingers [1..5]**  
+  * **Show number of fingers [1..5]**  
 * Confirm the number of options displayed:   
   * **OK sign**  
   
@@ -353,7 +353,7 @@ saying _the italic words_, gesture commands are activated by doing
   
 * Start the voting:   
   * **Victory sign**  
- * _voting on_  
+  * _voting on_  
 * Cast your vote:   
   * In case of yes/no:   
      * **Show thumbs-up*  
