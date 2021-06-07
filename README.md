@@ -98,6 +98,7 @@ sudo modprobe v4l2loopback devices=1
 For further information, see the [v4l2loopback documentation](https://github.com/umlaeute/v4l2loopback).  
   
 </p>  
+</details>
   
 ## Installation 
 ```console  
