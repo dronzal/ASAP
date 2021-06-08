@@ -277,9 +277,8 @@ performing model.
 * For this application we only use the first of possible alternatives when the response arrives. This transcript is
   passed through the main class as a string where it is compared to predefined expressions, using regular expression or
   REGEX.
-  
-    
-* using returned string  
+* Because the string is checked for exact matching the commands, some commands are not recognised. This topic will
+be discussed during the furter steps.
 #### Further steps
 
 
