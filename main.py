@@ -6,6 +6,7 @@ Copyright 2021, ASAP team, authored by Arne Depuydt
 """
 
 from silence_tensorflow import silence_tensorflow
+
 silence_tensorflow()
 from collections import Counter, deque
 from datetime import datetime
@@ -258,7 +259,8 @@ class ASAP:
             self.unmute = True
 
         if re.search(r"\b(gesture)\b", tmp, re.I):
-            self.show_gesture_debug = True
+            pass
+            #self.show_gesture_debug = True
 
         if re.search(r"\b(voting on)\b", tmp, re.I):
             self.voting_mode = True
@@ -311,7 +313,7 @@ class ASAP:
             if not isinstance(self.action_time, type(None)):
                 if (time.time() - self.action_time >= self.action_time_max):
                     self.action = False
-                    #print("=> Action timer reset: ", int(time.time() - self.action_time))
+                    # print("=> Action timer reset: ", int(time.time() - self.action_time))
                     self.action_time = None
 
         # Potentially send "Command mode off" directly from Gesture detection
@@ -367,7 +369,7 @@ class ASAP:
         if self.action:
             if isinstance(self.action_time, type(None)):
                 self.action_time = time.time()
-                #print("=> Action timer started: ", self.action_time)
+                # print("=> Action timer started: ", self.action_time)
 
     def build_actions(self):
         """
@@ -438,7 +440,6 @@ class ASAP:
                 keyboard.write(self.ws_name + " at " + timestamp_str + ": ")
                 keyboard.write(self.stt_result + "\n")
 
-
     @staticmethod
     def flip_frame(frame):
         """
@@ -473,7 +474,7 @@ class ASAP:
             color = (0, 0, 0)
             thickness = 5
             cv2.putText(self.result_frame, self.mood(getIndex=False).get('emotion'),
-                        (int(xPositionEmojiLine-25), int(yPositionTop - heightLine - 20)),
+                        (int(xPositionEmojiLine - 25), int(yPositionTop - heightLine - 20)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             self.result_frame = cv2.line(self.result_frame, start_point, end_point, color, thickness)
             self.result_frame = cv2.circle(self.result_frame,
@@ -507,13 +508,13 @@ class ASAP:
 
     @staticmethod
     def print_rect(image, color):
-        c = (0,0,0)
+        c = (0, 0, 0)
         if color == "green":
-            c = (0,255,0)
+            c = (0, 255, 0)
         elif color == "yellow":
-            c = (0,255,255)
+            c = (0, 255, 255)
         elif color == "red":
-            c = (0,0,255)
+            c = (0, 0, 255)
         image_width, image_height = image.shape[1], image.shape[0]
         image = cv2.rectangle(image, (1, 1), (image_width - 1, image_height - 1), c, 6)
         cv2.putText(image, "Command Mode", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, c, 1, cv2.LINE_AA)
@@ -805,7 +806,7 @@ def load_args():
     """
 
     parser = argparse.ArgumentParser(prog="tool", description='ASAP, add AI features to your camera stream',
-                                     formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=35))
+                                     formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=35))
     parser.add_argument(
         '-n', '--name', required=False, type=str, help='User name for websocket')
     parser.add_argument(
@@ -876,7 +877,7 @@ if __name__ == "__main__":
                         )
 
     # init main app
-    asap = ASAP(ws_name=args.get('name'), logging=logging, flip_frame= args.get('flip_frame'))
+    asap = ASAP(ws_name=args.get('name'), logging=logging, flip_frame=args.get('flip_frame'))
 
     # start main app in a Thread, main purpose is to run as a containerized app
     asap_thread = Thread(target=asap.start, daemon=True, name="ASAP_MainThread")
@@ -884,7 +885,7 @@ if __name__ == "__main__":
     # Start the main thread
     asap_thread.start()
     while asap.started:
-        #print(asap.gesture_result)
+        # print(asap.gesture_result)
         try:
             time.sleep(1)
         except KeyboardInterrupt:
