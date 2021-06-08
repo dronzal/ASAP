@@ -247,14 +247,16 @@ This should fit our needs.
 Even with the powerful model of Google, we encounter still that some words or sentences are
 not recognised in a proper way. This shows that it would be very hard to train an own, well 
 performing model.
-* #### Machine Learning (ML) / Artificial Intelligence (AI)  
-@TODO further writing, now just keywords.  
+#### Machine Learning (ML) / Artificial Intelligence (AI)  
 * Streaming speech recognition       
   Receive real-time speech recognition results as the API processes   
   the audio input streamed from your application’s microphone or sent from   
   a prerecorded audio file (inline or through Cloud Storage).  
     
 * using returned string  
+#### Further steps
+
+
 #### Further Interesting Links  
 
 https://github.com/mozilla/DeepSpeech
