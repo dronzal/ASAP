@@ -247,7 +247,33 @@ This should fit our needs.
 Even with the powerful model of Google, we encounter still that some words or sentences are
 not recognised in a proper way. This shows that it would be very hard to train an own, well 
 performing model.
+
 #### Machine Learning (ML) / Artificial Intelligence (AI)  
+* From the Google service is the API of the streaming speech recognition used. 
+  Real-time speech is recorded by the ASAP-application and is send to Google.
+  The speech recognition is synchronous, so it is blocking. A new request can be handle, whenever the previous one is
+  processed. However, every client has it's own connection to the Google API.
+  
+* The response of the API can be seen underneath. The result is returned with possible alternatives of different
+  transcripts and the conficence level accordingly. 
+```console
+{
+  "results": [
+    {
+      "alternatives": [
+        {
+          "confidence": 0.51246254,
+          "transcript": "Speech recognition is awesome"
+        }
+        {
+          "confidence": 0.99999999,
+          "transcript": "The ASAP application is awesome"
+        }
+      ]
+    }
+  ]
+}
+``` 
 * Streaming speech recognition       
   Receive real-time speech recognition results as the API processes   
   the audio input streamed from your application’s microphone or sent from   
