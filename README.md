@@ -274,10 +274,10 @@ performing model.
   ]
 }
 ``` 
-* Streaming speech recognition       
-  Receive real-time speech recognition results as the API processes   
-  the audio input streamed from your application’s microphone or sent from   
-  a prerecorded audio file (inline or through Cloud Storage).  
+* For this application we only use the first of possible alternatives when the response arrives. This transcript is
+  passed through the main class as a string where it is compared to predefined expressions, using regular expression or
+  REGEX.
+  
     
 * using returned string  
 #### Further steps
