@@ -280,12 +280,20 @@ performing model.
 * Because the string is checked for exact matching the commands, some commands are not recognised. This topic will
 be discussed during the furter steps.
 #### Further steps
-
+* Because a part of the returned string must match the predefined command exactly, it is sometimes hard to enter the 
+command mode or to execute a command. A solution could be to add more variants and be more tolerant during the matching
+  between the returned string and the defined commands.
+  
+* However it is hard to train an own model, this could be done for the specific commands and action words. By using an 
+self trained model for this, the commands could be recognised more easily.
 
 #### Further Interesting Links  
 
 https://github.com/mozilla/DeepSpeech
-  
+
+https://cloud.google.com/speech-to-text  
+
+https://cloud.google.com/speech-to-text  
 </p>  
 </details>  
   
