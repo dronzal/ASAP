@@ -8,6 +8,36 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 <img src="assets/asap.jpg" width="720">  
   
 ## Application  
+
+### Structure
+
+```
+.
+├── assets                        # Images etc.
+├── logs                          # Logfiles for debugging
+├── tools                         # The Components of ASAP
+│   ├── bgmask 
+│   │   ├── bg_im                 # ...
+│   │   ├── models                # ...
+│   │   ├── bgmask.py             # The Dynamic Background
+│   │   └── __init__.py           # ...
+│   ├── gesture 
+│   │   ├── model                 # ...
+│   │   ├── utils                 # ...
+│   │   ├── gesture_detection.py  # The Gesture Detection
+│   │   └── keyp....ipynb         # Jupyter notebook to train the model
+│   ├── vision_mood_detection      
+│   │   ├── models                # ...
+│   │   ├── __init__.py           # ...
+│   │   ├── mood_detection.py     # The Mood Detection
+│   │   └── train.py              # Training code
+│   └── speechToText.py           # The Speech-to-Text
+├── google-credentials.json       # Out-of-date credentials to be replaced by you
+├── main.py                       # ASAP application
+├── README.md                     # Readme file (you are reading it ;-)
+└── requirements.txt              # Requirements overview: pip install -r requirements.txt 
+```
+
 ### Design  
 <p>  
 The application needed to be designed to incorporate the results of different features. After initial performance issues, the following design has proven to be operational. A Threadpool executor controls three of the threads that require the webcam frames as input. Speech recognition runs as thread connected to a Google service. Three further threads control video capture, display and the virtual camera. Finally the client side actions are handled in a thread and another websocket thread takes care of the communication between clients / participants.  
@@ -247,18 +277,53 @@ This should fit our needs.
 Even with the powerful model of Google, we encounter still that some words or sentences are
 not recognised in a proper way. This shows that it would be very hard to train an own, well 
 performing model.
-* #### Machine Learning (ML) / Artificial Intelligence (AI)  
-@TODO further writing, now just keywords.  
-* Streaming speech recognition       
-  Receive real-time speech recognition results as the API processes   
-  the audio input streamed from your application’s microphone or sent from   
-  a prerecorded audio file (inline or through Cloud Storage).  
-    
-* using returned string  
+
+#### Machine Learning (ML) / Artificial Intelligence (AI)  
+* From the Google service is the API of the streaming speech recognition used. 
+  Real-time speech is recorded by the ASAP-application and is send to Google.
+  The speech recognition is synchronous, so it is blocking. A new request can be handle, whenever the previous one is
+  processed. However, every client has it's own connection to the Google API.
+  
+* The response of the API can be seen underneath. The result is returned with possible alternatives of different
+  transcripts and the conficence level accordingly. 
+```console
+{
+  "results": [
+    {
+      "alternatives": [
+        {
+          "confidence": 0.51246254,
+          "transcript": "Speech recognition is awesome"
+        }
+        {
+          "confidence": 0.99999999,
+          "transcript": "The ASAP application is awesome"
+        }
+      ]
+    }
+  ]
+}
+``` 
+* For this application we only use the first of possible alternatives when the response arrives. This transcript is
+  passed through the main class as a string where it is compared to predefined expressions, using regular expression or
+  REGEX.
+* Because the string is checked for exact matching the commands, some commands are not recognised. This topic will
+be discussed during the furter steps.
+#### Further steps
+* Because a part of the returned string must match the predefined command exactly, it is sometimes hard to enter the 
+command mode or to execute a command. A solution could be to add more variants and be more tolerant during the matching
+  between the returned string and the defined commands.
+  
+* However it is hard to train an own model, this could be done for the specific commands and action words. By using an 
+self trained model for this, the commands could be recognised more easily.
+
 #### Further Interesting Links  
 
 https://github.com/mozilla/DeepSpeech
-  
+
+https://cloud.google.com/speech-to-text  
+
+https://cloud.google.com/speech-to-text  
 </p>  
 </details>  
   
@@ -307,7 +372,7 @@ saying _the italic words_, gesture commands are activated by doing
   * **Show two hands to the webcam**   
   * _command mode on_  
 * Cancel command mode:   
-  * **Show two hands again**  
+  * **Show OK sign**  
   * _command mode off_  
 </p>  
 </details>   
@@ -323,10 +388,10 @@ saying _the italic words_, gesture commands are activated by doing
   * **Make an upward fist**  
   * _unmute_ or _toggle mute_ when muted   
 * Increase the volume:   
-  * **Index finger up (and thumb to the side)**  
+  * [Not implemented for the prototye] **Index finger up (and thumb to the side)**  
   * _volume up_  
 * Decrease the volume:   
-  * **Index finger down (and thumb to the side)**  
+  * [Not implemented for the prototye] **Index finger down (and thumb to the side)**  
   * _volume down_  
 </p>  
 </details>   
@@ -364,31 +429,30 @@ saying _the italic words_, gesture commands are activated by doing
 <p>   
    
 * Begin a voting process:   
-  * **Victory sign**  
+  * [Not implemented for the prototye] **Victory sign**  
   * _voting on_  
 * Set the number of options:   
   * Indicate yes/no question:   
-     * **Thumbs-up sign**  
-  * **Show number of fingers [1..5]**  
+     * [Gesture available, but not implemented for the prototye] **Thumbs-up sign**  
+  * [Gesture available, but not implemented for the prototye] **Show number of fingers [1..5]**  
 * Confirm the number of options displayed:   
   * **OK sign**  
   
 --- Explain the options to the group ---  
   
 * Start the voting:   
-  * **Victory sign**  
+  * [Gesture available, but not implemented for the prototye] **Victory sign**  
   * _voting on_  
 * Cast your vote:   
   * In case of yes/no:   
-     * **Show thumbs-up*  
+     * [Gesture available, but not implemented for the prototye] **Show thumbs-up**
  * _I vote yes_ or _I vote no_  
  * In case of more options:   
-     * **Show number with your fingers**  
+     * [Count available, but not implemented for the prototye] **Show number with your fingers**  
  * _option [1..5]_ or _option [A..E]_  
 * Confirm vote:   
-  * **OK sign**  
+  * [Gesture available, but not implemented for the prototye] **OK sign**  
   
-[not implemented]  
 --- Once all participants have voted, display the result on all screens ---  
 </p>  
 </details>   
