@@ -342,7 +342,7 @@ saying _the italic words_, gesture commands are activated by doing
   * **Show two hands to the webcam**   
   * _command mode on_  
 * Cancel command mode:   
-  * **Show two hands again**  
+  * **Show OK sign**  
   * _command mode off_  
 </p>  
 </details>   
@@ -358,10 +358,10 @@ saying _the italic words_, gesture commands are activated by doing
   * **Make an upward fist**  
   * _unmute_ or _toggle mute_ when muted   
 * Increase the volume:   
-  * **Index finger up (and thumb to the side)**  
+  * [Not implemented for the prototye] **Index finger up (and thumb to the side)**  
   * _volume up_  
 * Decrease the volume:   
-  * **Index finger down (and thumb to the side)**  
+  * [Not implemented for the prototye] **Index finger down (and thumb to the side)**  
   * _volume down_  
 </p>  
 </details>   
@@ -399,31 +399,30 @@ saying _the italic words_, gesture commands are activated by doing
 <p>   
    
 * Begin a voting process:   
-  * **Victory sign**  
+  * [Not implemented for the prototye] **Victory sign**  
   * _voting on_  
 * Set the number of options:   
   * Indicate yes/no question:   
-     * **Thumbs-up sign**  
-  * **Show number of fingers [1..5]**  
+     * **[Gesture available, but not implemented for the prototye] Thumbs-up sign**  
+  * **[Gesture available, but not implemented for the prototye] Show number of fingers [1..5]**  
 * Confirm the number of options displayed:   
   * **OK sign**  
   
 --- Explain the options to the group ---  
   
 * Start the voting:   
-  * **Victory sign**  
+  * **[Gesture available, but not implemented for the prototye] Victory sign**  
   * _voting on_  
 * Cast your vote:   
   * In case of yes/no:   
-     * **Show thumbs-up*  
+     * **[Gesture available, but not implemented for the prototye] Show thumbs-up**
  * _I vote yes_ or _I vote no_  
  * In case of more options:   
-     * **Show number with your fingers**  
+     * **[Count available, but not implemented for the prototye] Show number with your fingers**  
  * _option [1..5]_ or _option [A..E]_  
 * Confirm vote:   
-  * **OK sign**  
+  * **[Gesture available, but not implemented for the prototye] OK sign**  
   
-[not implemented]  
 --- Once all participants have voted, display the result on all screens ---  
 </p>  
 </details>   
