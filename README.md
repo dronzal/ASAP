@@ -432,7 +432,7 @@ saying _the italic words_, gesture commands are activated by doing **the bold in
 * Set the number of options:   
   * Indicate yes/no question:   
     * **Thumbs-up sign** :thumbsup: 
-    * **Show number of fingers [1..5]** :point_up: :metal: (counts raised fingers) 
+  * **Show number of fingers [1..5]** :point_up: :metal: (counts raised fingers) 
 * Confirm the number of options displayed:   
   * **OK sign** :ok_hand:
   
@@ -445,7 +445,7 @@ saying _the italic words_, gesture commands are activated by doing **the bold in
   * In case of yes/no:   
     * **Show thumbs-up/thumgs-down** :thumbsup:/:thumbsdown:
     * _I vote yes_ or _I vote no_  
- * In case of more options:   
+  * In case of more options:   
     * **Show number with your fingers** :point_up: :metal: (counts raised fingers)
     * _option [1..5]_ or _option [A..E]_  
 * Confirm vote:   
