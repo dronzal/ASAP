@@ -37,7 +37,7 @@ import traceback
 
 class ASAP:
 
-    def __init__(self, ws_name, logging, cam_width=640, cam_height=480, flip_frame=False):
+    def __init__(self, ws_name, logging, cam_width=640, cam_height=480, flip_frame=True):
 
         self.ws_name = ws_name
         self.log = logging
@@ -437,7 +437,6 @@ class ASAP:
                 self.transcript_done = True
                 keyboard.write(self.ws_name + " at " + timestamp_str + ": ")
                 keyboard.write(self.stt_result + "\n")
-
 
     @staticmethod
     def flip_frame(frame):
