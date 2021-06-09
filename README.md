@@ -208,7 +208,7 @@ recognition before beeing able to get to gesture detection.
 
 Luckily, Google Mediapipe was discovered. It is a relative lightweight Machine Learning solution that recognizes hands 
 (amongst others) and is available as Python library 
-https://google.github.io/mediapipe/solutions/hands#python-solution-api. Having the possible to translate hands and 
+https://google.github.io/mediapipe/solutions/hands#python-solution-api. Having the possibility to translate hands and 
 fingers into coordinates, the next step was to search for gesture detection solutions on Github. The above linked 
 framework by Kazuhito00 provided a well documented approach using the coordinates as input and two Neural Networks, 
 one for gesture detection and one for (index) finger movement detection. In the original solution, the functionality 
@@ -232,14 +232,12 @@ discrete results (originally 8, for our purposes one added): <br />
 The model training is executed in a Jupyter notebook. The neural network is fed with the normalized coordinates and 
 the labels that indicate the hand gesture. The model achieves around 99.96% accuracy in around 100 epochs. 
 The saved model is transformed into a tflite model and used to infer the hand gestures from the webcam images 
-(pre-evaluated through Mediapipe)  
+(pre-evaluated through Mediapipe).
   
 #### Further Interesting Links  
 * Mediapipe Demo  
   * <a href="https://mediapipe.dev/demo/holistic_remote/" target="blank">Holistic Mediapipe demo</a>  
-   
-  
- 
+
 </details>  
   
 <details>  
