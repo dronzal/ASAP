@@ -15,22 +15,22 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 .
 ├── assets                        # Images etc.
 ├── logs                          # Logfiles for debugging
-├── tools                         # The Components of ASAP
+├── tools                         # The Components of ASAP:
 │   ├── bgmask 
-│   │   ├── bg_im                 # ...
-│   │   ├── models                # ...
+│   │   ├── bg_im                 
+│   │   ├── models                
 │   │   ├── bgmask.py             # The Dynamic Background
-│   │   └── __init__.py           # ...
+│   │   └── __init__.py           
 │   ├── gesture 
-│   │   ├── model                 # ...
-│   │   ├── utils                 # ...
+│   │   ├── model                 
+│   │   ├── utils                 
 │   │   ├── gesture_detection.py  # The Gesture Detection
 │   │   └── keyp....ipynb         # Jupyter notebook to train the model
 │   ├── vision_mood_detection      
-│   │   ├── models                # ...
-│   │   ├── __init__.py           # ...
+│   │   ├── models                
+│   │   ├── __init__.py           
 │   │   ├── mood_detection.py     # The Mood Detection
-│   │   └── train.py              # Training code
+│   │   └── train.py              
 │   └── speechToText.py           # The Speech-to-Text
 ├── google-credentials.json       # Out-of-date credentials to be replaced by you
 ├── main.py                       # ASAP application
@@ -359,20 +359,18 @@ Also since most of the images contain plain background, synthetic images where i
 ## Features  
   
 ### Voice / Gesture Commands  
-  Both voice commands and gestures are used to interact with the video conferencing   
-tool and with the videoconference participants. Voice commands are activated by   
-saying _the italic words_, gesture commands are activated by doing   
-**the bold instructions**. Currently the following commands are supported:  
+Both voice commands and gestures are used to interact with the video conferencing tool and with the videoconference participants. Voice commands are activated by   
+saying _the italic words_, gesture commands are activated by doing **the bold instructions**. Currently the following commands are supported:  
   
 <details>  
 <summary>Command Mode</summary>  
 <p>  
    
 * Move into command mode:  
-  * **Show two hands to the webcam**   
+  * **Show two hands to the webcam** :raised_hands:  
   * _command mode on_  
 * Cancel command mode:   
-  * **Show OK sign**  
+  * **Show OK sign** :ok_hand:
   * _command mode off_  
 </p>  
 </details>   
@@ -382,16 +380,16 @@ saying _the italic words_, gesture commands are activated by doing
 <p>  
    
 * Mute the microphone:   
-  * **Show flat palm of one hand**  
+  * **Show flat palm of one hand** :hand:
   * _mute_ or _toggle mute_ when unmuted   
 * Un-mute the microphone:   
-  * **Make an upward fist**  
+  * **Make an upward fist** :fist:
   * _unmute_ or _toggle mute_ when muted   
 * Increase the volume:   
-  * [Not implemented for the prototye] **Index finger up (and thumb to the side)**  
+  * [Not implemented for the prototye] **Index finger up (and thumb to the side)** :point_up:
   * _volume up_  
 * Decrease the volume:   
-  * [Not implemented for the prototye] **Index finger down (and thumb to the side)**  
+  * [Not implemented for the prototye] **Index finger down (and thumb to the side)** :point_down:
   * _volume down_  
 </p>  
 </details>   
@@ -401,10 +399,10 @@ saying _the italic words_, gesture commands are activated by doing
 <p>  
    
 * Black out the Camera:   
-  * **Point fist at the camera**  
+  * **Point fist at the camera** :punch: 
   * _camera off_  
 * Return to Webcam display:   
-  * **Show upwards fist (same as un-mute)**  
+  * **Show upwards fist (same as un-mute)** :fist: 
   * _camera on_  
 </p>  
 </details>   
@@ -414,10 +412,10 @@ saying _the italic words_, gesture commands are activated by doing
 <p>  
    
 * Change the Background one-forward:   
-  * **Fist with thumb to one side**  
+  * **Fist with thumb to one side** :point_right: (not exactly, use the thumb)
   * _background right_  
 * Change the Background one-backward:   
-  * **Fist with thumb to the other side**  
+  * **Fist with thumb to the other side** :point_left: (not exactly, use the thumb)  
   * _background left_  
 * Change the Background to a random one:  
   * _change background_  
@@ -425,33 +423,33 @@ saying _the italic words_, gesture commands are activated by doing
 </details>   
   
 <details>  
-<summary>Voting</summary>  
+<summary>Voting [Not fully implemented for the prototye]</summary>  
 <p>   
    
 * Begin a voting process:   
-  * [Not implemented for the prototye] **Victory sign**  
+  * **Victory sign** :v: 
   * _voting on_  
 * Set the number of options:   
   * Indicate yes/no question:   
-     * [Gesture available, but not implemented for the prototye] **Thumbs-up sign**  
-  * [Gesture available, but not implemented for the prototye] **Show number of fingers [1..5]**  
+     * **Thumbs-up sign** :thumbsup: 
+  * **Show number of fingers [1..5]** :point_up: :metal: (counts raised fingers) 
 * Confirm the number of options displayed:   
-  * **OK sign**  
+  * **OK sign** :ok_hand:
   
 --- Explain the options to the group ---  
   
 * Start the voting:   
-  * [Gesture available, but not implemented for the prototye] **Victory sign**  
+  * **Victory sign** :v:
   * _voting on_  
 * Cast your vote:   
   * In case of yes/no:   
-     * [Gesture available, but not implemented for the prototye] **Show thumbs-up**
+     * **Show thumbs-up/thumgs-down** :thumbsup:/:thumbsdown:
  * _I vote yes_ or _I vote no_  
  * In case of more options:   
-     * [Count available, but not implemented for the prototye] **Show number with your fingers**  
+     * **Show number with your fingers** :point_up: :metal: (counts raised fingers)
  * _option [1..5]_ or _option [A..E]_  
 * Confirm vote:   
-  * [Gesture available, but not implemented for the prototye] **OK sign**  
+  * **OK sign** :ok_hand: 
   
 --- Once all participants have voted, display the result on all screens ---  
 </p>  
