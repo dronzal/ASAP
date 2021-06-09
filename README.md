@@ -8,6 +8,36 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 <img src="assets/asap.jpg" width="720">  
   
 ## Application  
+
+### Structure
+
+```
+.
+├── assets                        # Images etc.
+├── logs                          # Logfiles for debugging
+├── tools                         # The Components of ASAP
+│   ├── bgmask 
+│   │   ├── bg_im                 # ...
+│   │   ├── models                # ...
+│   │   ├── bgmask.py             # The Dynamic Background
+│   │   └── __init__.py           # ...
+│   ├── gesture 
+│   │   ├── model                 # ...
+│   │   ├── utils                 # ...
+│   │   ├── gesture_detection.py  # The Gesture Detection
+│   │   └── keyp....ipynb         # Jupyter notebook to train the model
+│   ├── vision_mood_detection      
+│   │   ├── models                # ...
+│   │   ├── __init__.py           # ...
+│   │   ├── mood_detection.py     # The Mood Detection
+│   │   └── train.py              # Training code
+│   └── speechToText.py           # The Speech-to-Text
+├── google-credentials.json       # Out-of-date credentials to be replaced by you
+├── main.py                       # ASAP application
+├── README.md                     # Readme file (you are reading it ;-)
+└── requirements.txt              # Requirements overview: pip install -r requirements.txt 
+```
+
 ### Design  
 <p>  
 The application needed to be designed to incorporate the results of different features. After initial performance issues, the following design has proven to be operational. A Threadpool executor controls three of the threads that require the webcam frames as input. Speech recognition runs as thread connected to a Google service. Three further threads control video capture, display and the virtual camera. Finally the client side actions are handled in a thread and another websocket thread takes care of the communication between clients / participants.  
