@@ -307,7 +307,7 @@ performing model.
   processed. However, every client has an own connection to the Google API.
   
 * The response of the API can be seen underneath. The result is returned with possible alternatives of different
-  transcripts and the conficence level accordingly. 
+  transcripts and the confidence level accordingly. 
 ```console
 {
   "results": [
@@ -337,7 +337,8 @@ command mode or to execute a command. A solution could be to add more variants a
   between the returned string and the defined commands.
   
 * However it is hard to train an own model, this could be done for the specific commands and action words. By using an 
-self trained model for this, the commands could be recognised more easily.
+self trained model for this, the commands could be recognised more easily. This model should work in parallel with the
+  service of Google. 
 
 #### Further Interesting Links  
 
