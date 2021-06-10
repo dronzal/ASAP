@@ -304,7 +304,7 @@ performing model.
 * The API of the streaming speech recognition used. 
   Real-time speech is recorded by the ASAP-application and is send to Google.
   The speech recognition is synchronous, so it is blocking. A new request can be handle, whenever the previous one is
-  processed. However, every client has an own connection to the Google API.
+  processed. However, every client has a connection of its own to the Google API.
   
 * The response of the API can be seen underneath. The result is returned with possible alternatives of different
   transcripts and the confidence level accordingly. 
