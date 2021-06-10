@@ -296,12 +296,12 @@ selected applications like for video and phone calls. However, these do not foll
 standard billing. Therefore, the default model for streaming speech recognition was selected.
 This should fit the needs.
 
-Even with the powerful model of Google, we encounter still that some words or sentences are
+Even with the powerful model of Google, we still encounter that some words or sentences are
 not recognised in a proper way. This shows that it would be very hard to train an own, well 
 performing model.
 
 #### Machine Learning (ML) / Artificial Intelligence (AI)  
-* From the Google service is the API of the streaming speech recognition used. 
+* The API of the streaming speech recognition used. 
   Real-time speech is recorded by the ASAP-application and is send to Google.
   The speech recognition is synchronous, so it is blocking. A new request can be handle, whenever the previous one is
   processed. However, every client has it's own connection to the Google API.
