@@ -325,10 +325,81 @@ https://cloud.google.com/speech-to-text
 </p>  
 </details>  
   
-<details><summary>Mood Detection</summary>  
+<details><summary>Mood Detection</summary>
+The mood detection algorithm attempts to detect the emotion of people based on their facial expression.
+The algorithm detects seven different emotions:
+
+* Angry
+* Disgust
+* Fear
+* Happy
+* Sad
+* Surprise
+* Neutral
+
+For every frame with a face in it, it returns the probability for each of these seven emotions.
+The probability of each emotion ranges between 0 and 100%.
+We consider the emotion with the highest probabilty to be the current emotion of the participant of the video-conference.
+
+#### Disclaimer
 <p>  
-...  
+The code used to train and use the model was heavily influenced by the following articles & repositories:
+
+* https://analyticsindiamag.com/face-emotion-recognizer-in-6-lines-of-code/
+* https://towardsdatascience.com/face-detection-in-just-5-lines-of-code-5cc6087cb1a9
+* https://towardsdatascience.com/face-detection-recognition-and-emotion-detection-in-8-lines-of-code-b2ce32d4d5de
+* https://morioh.com/p/801c509dda99
 </p>  
+
+#### Research
+In this section I will explain how the model was trained and how it can be used to detect emotions in a video-feed.
+#### Machine Learning (ML) / Artificial Intelligence (AI)  
+##### Training
+The data-set that was used for training the model can be found on https://www.kaggle.com/msambare/fer2013.
+It is a labeled dataset. The dataset's distribution is not perfect and has a significant underrepresentation of the emotion that is labeled as "disgust".
+The distribution looks like this:
+
+* Angry: 958 datapoints
+* Disgust: 111 datapoints
+* Fear: 1024 datapoints
+* Happy: 1774 datapoints
+* Neutral: 1233 datapoints
+* Sad: 1247 datapoints
+* Surprise: 831 datapoints
+
+Every datapoint in this dataset is a black-and-white image of a face with a certain emotion.
+The dimension of the images is 48 x 48 as shown below:
+
+<img src="assets/datapoint_mood.jpg" width="48">
+
+In order to train the model based on these images, a convolutional neural network seemed to be a good fit.
+A model consisting of three layers was used.
+Relu was used as the activation function for each node.
+
+The model has an accuracy of ±70%.
+
+##### Using the model
+The input of the model should be black-and-white images of faces.
+In order to get this input, we use Open-CV2.
+
+Every time a frame is detected by the webcam, the following steps occur:
+
+1. Transform colored frame to a grayscale frame:
+```cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)```
+   
+2. Detect faces in this grayscale image:
+```faces_detected = self.face_haar_cascade.detectMultiScale(gray_img, 1.32, 5)```
+   
+3. For every face that is detected do the following:
+    1. The ```detectMultiScale``` function returns x and y coordinates of each faces as well as the width and height.
+Using this information, we crop out the face: ```gray_img[y:y + w, x:x + h] ```.
+    2. Resize the cropped image to 48 x 48 so it is compatible with the images of the data-set: ```cv2.resize(roi_gray, (48, 48))```.
+    3. Predict the probability for each emotion using the resized image: ```self.model.predict(img_pixels)```.
+    4. Return the emotion with the highest probability.
+4. Draw the dominant mood and its corresponding probability on the original frame that was detected by the webcam.
+5. Show the frame to the user and send it to the virtual cam.
+   
+
 </details>  
   
 <details><summary>Dynamic Background</summary>  
@@ -341,7 +412,7 @@ All credits to [Anilsathyan7](https://github.com/anilsathyan7/Portrait-Segmentat
 Special thanks!  
   
   
-#### Research.  
+#### Research
 Background masking, is in fact a segmentation technique.    
 To speed up the performance, the model is limited to a binairy class (person or background). Therefor an portrait-selfie [dataset](https://onedrive.live.com/?cid=f5111408123b1d9c&id=F5111408123B1D9C%2115035&authkey=!ADkS4V32BUmspOg) was used.  
   
@@ -451,7 +522,17 @@ saying _the italic words_, gesture commands are activated by doing **the bold in
   
 --- Once all participants have voted, display the result on all screens ---  
 </p>  
-</details>   
+</details>
+
+### Webserver capabilities
+As discussed above, the voting capabilities are not fully implemented.
+In order to implement this fully, a server is necesary which can aggregate all votes for example.
+
+Although we did not implement the specific voting use-case, we did create a server using websockets.
+
+The server is capable of logging the entire conference call as well as continuously measuring the "dominant mood".
+The dominant mood is the mood that has the highest probability after aggregating and summing the probability of each mood of each user.
+
   
 ## The End  
   

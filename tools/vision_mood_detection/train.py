@@ -3,23 +3,19 @@ import pandas as pd
 import numpy as np
 
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, AveragePooling2D
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Conv2D, MaxPooling2D
 from keras.losses import categorical_crossentropy
 from keras.optimizers import Adam
-from keras.regularizers import l2
 from keras.utils import np_utils
 
-# pd.set_option('display.max_rows', 500)
-# pd.set_option('display.max_columns', 500)
-# pd.set_option('display.width', 1000)
 
 df = pd.read_csv('fer2013.csv')
 
 print(df.info())
 print(df["Usage"].value_counts())
 
-# print(df.head())
+
 X_train, train_y, X_test, test_y = [], [], [], []
 
 for index, row in df.iterrows():
