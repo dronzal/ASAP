@@ -278,7 +278,7 @@ This code makes use of an existing service of Google.
 * The basic code can be found on GitHub: https://github.com/googleapis/python-speech/tree/master/samples  
   
 #### Research
-Like mentioned during the introduction of this part, we were not able to make a speech recognition model by 
+Like mentioned during the introduction of this part, it was not possible to make a speech recognition model by 
 ourselves. An attempt was made by using the DeepSpeech project (https://github.com/mozilla/DeepSpeech).
 It offers some pre-trained models, but it is also possible to train your own model. The model is trained by using 
 TensorFlow and it is highly recommended to activate the GPU support. More information on creating an own speech 
@@ -294,7 +294,7 @@ It is possible to sign up to test the service for free. The duration of the free
 is long enough to finish this project. It is possible to use very specific trained models for
 selected applications like for video and phone calls. However, these do not follow the
 standard billing. Therefore, the default model for streaming speech recognition was selected.
-This should fit our needs.
+This should fit the needs.
 
 Even with the powerful model of Google, we encounter still that some words or sentences are
 not recognised in a proper way. This shows that it would be very hard to train an own, well 
