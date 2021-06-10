@@ -267,10 +267,10 @@ The saved model is transformed into a tflite model and used to infer the hand ge
 <details>  
 <summary>Voice Commands / Text-2-Speech</summary>  
 <p>  
-The speech recognition is done by a service of Google. At first an own model   
+The speech recognition is done by a service of Google. At first, an own model   
 was trained, however this was not satisfying. Not a single word was recognised  
 properly. By using the service of Google a more reliable result is obtained,   
-however there is still room for improvement.  
+however there is still some room for improvement.  
   
 #### Disclaimer  
 This code makes use of an existing service of Google.   
