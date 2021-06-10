@@ -3,7 +3,12 @@
   
 `A:rne-S:imon-A:lexis-P:ieter-Jan`  
   
-As part of the Postgraduate Artificial Intelligence course offered by the VUB and the Erasmushoogeschool in Brussels, we have selected to develop an interactive and ML-driven addition to videoconferencing. With virtual meetings on the rise, developing and improving the interaction between human participant and the videoconference is becoming an interesting field of study. We are proposing a combination of intelligent interfaces to increase this interaction, using trained Neural Networks and AI online services. Each component of the application is described below and interesting links are added to showcase the ideas and (Github) libraries we have built upon.  
+As part of the Postgraduate Artificial Intelligence course offered by the VUB and the Erasmushoogeschool in Brussels, 
+we have selected to develop an interactive and ML-driven addition to videoconferencing. With virtual meetings on the 
+rise, developing and improving the interaction between human participant and the videoconference is becoming an 
+interesting field of study. We are proposing a combination of intelligent interfaces to increase this interaction, 
+using trained Neural Networks and AI online services. Each component of the application is described below and 
+interesting links are added to showcase the ideas and (Github) libraries we have built upon.  
   
 <img src="assets/asap.jpg" width="720">  
   
@@ -14,7 +19,6 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 ```
 .
 ├── assets                        # Images etc.
-├── logs                          # Logfiles for debugging
 ├── tools                         # The Components of ASAP:
 │   ├── bgmask 
 │   │   ├── bg_im                 
@@ -40,11 +44,17 @@ As part of the Postgraduate Artificial Intelligence course offered by the VUB an
 
 ### Design  
 <p>  
-The application needed to be designed to incorporate the results of different features. After initial performance issues, the following design has proven to be operational. A Threadpool executor controls three of the threads that require the webcam frames as input. Speech recognition runs as thread connected to a Google service. Three further threads control video capture, display and the virtual camera. Finally the client side actions are handled in a thread and another websocket thread takes care of the communication between clients / participants.  
+The application needed to be designed to incorporate the results of different features. 
+After initial performance issues, the following design has proven to be operational. 
+A Threadpool executor controls three of the threads that require the webcam frames as input. 
+Speech recognition runs as thread connected to a Google service. Three further threads control video capture, 
+display and the virtual camera. Finally the client side actions are handled in a thread and another websocket thread 
+takes care of the communication between clients / participants.  
   
 <img src="assets/asap_uml.jpg" width="1080">  
   
->The main purpose of this design is that you can build it into other applications, or extend it with say a GUI, for debugging reasons.  
+>The main purpose of this design is that you can build it into other applications, or extend it with say a GUI, 
+> for debugging reasons.  
   
 Also the [python logging class](https://docs.python.org/3/library/logging.html) is implemented in this project.  
 So it makes debugging lot's easier to do.    
@@ -96,13 +106,19 @@ Authored by [pyvirtualcam](https://github.com/letmaik/pyvirtualcam) .
   
 To use the OBS virtual camera, simply [install OBS](https://obsproject.com/).  
   
-Note that OBS provides a single camera instance only, so it is *not* possible to send frames from Python to the built-in OBS virtual camera, capture the camera in OBS, mix it with other content, and output it again to OBS' built-in virtual camera. To achieve such a workflow, use another virtual camera from Python (like Unity Capture) so that OBS' built-in virtual camera is free for use in OBS.  
+Note that OBS provides a single camera instance only, so it is *not* possible to send frames from Python 
+to the built-in OBS virtual camera, capture the camera in OBS, mix it with other content, and output it again to OBS' 
+built-in virtual camera. To achieve such a workflow, use another virtual camera from Python (like Unity Capture) so 
+that OBS' built-in virtual camera is free for use in OBS.  
   
 #### Windows: Unity Capture  
   
-[Unity Capture](https://github.com/schellingb/UnityCapture) provides a virtual camera originally meant for streaming Unity games. Compared to most other virtual cameras it supports RGBA frames (frames with transparency) which in turn can be captured in [OBS](https://obsproject.com/) for further processing.  
+[Unity Capture](https://github.com/schellingb/UnityCapture) provides a virtual camera originally meant for streaming 
+Unity games. Compared to most other virtual cameras it supports RGBA frames (frames with transparency) which in turn 
+can be captured in [OBS](https://obsproject.com/) for further processing.  
   
-To use the Unity Capture virtual camera, follow the [installation instructions](https://github.com/schellingb/UnityCapture#installation) on the project site.  
+To use the Unity Capture virtual camera, 
+follow the [installation instructions](https://github.com/schellingb/UnityCapture#installation) on the project site.  
   
 #### macOS: OBS  
   
@@ -114,7 +130,8 @@ To use the OBS virtual camera, follow these one-time setup steps:
 - Click "Start Virtual Camera" (bottom right), then "Stop Virtual Camera".  
 - Close OBS.  
   
-Note that OBS provides a single camera instance only, so it is *not* possible to send frames from Python, capture the camera in OBS, mix it with other content, and output it again as virtual camera.  
+Note that OBS provides a single camera instance only, so it is *not* possible to send frames from Python, 
+capture the camera in OBS, mix it with other content, and output it again as virtual camera.  
   
 #### Linux: v4l2loopback  
   
@@ -158,7 +175,8 @@ python3 -m pip install --user -r requirements.txt
 ## Start the app  
 ```console  
 # View args:  
-python3 main.py -h usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HEIGHT] [-W WIDTH] [-l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}]  
+python3 main.py -h usage: tool [-h] [-n NAME] [-d DEBUG] [-g GOOGLE_CRED] [-H HEIGHT] [-W WIDTH] 
+[-l {CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET}]  
   
 ASAP, add AI features to your camera stream.  
   
@@ -182,14 +200,20 @@ Please click for further details:
 <details>  
 <summary>Gesture Recognition</summary>  
 <p>  
-The Gesture Recognition component makes use of the Google-developed Mediapipe framework for hand recognition. The hand landmarks are used as coordinates that can be fed into a neural network to recognize hand gestures (and finger gestures).  
+The Gesture Recognition component makes use of the Google-developed Mediapipe framework for hand recognition. 
+The hand landmarks are used as coordinates that can be fed into a neural network to recognize hand gestures 
+(and finger gestures).  
    
 #### Disclaimer  
 The code makes use of existing libraries and is based in large parts on the following repositories:  
 * It uses the Mediapipe framework published by Google: https://mediapipe.dev/  
-* It is based on code published by Kazuhito00 on Github: https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/README_EN.md  
-published under Apache 2.0 licence: https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/LICENSE  
-* It uses hand gestures trained by kinivi, his neural network design and Jupyter notebook from Github: https://github.com/kinivi/tello-gesture-control published under Apache 2.0 licence: https://github.com/kinivi/tello-gesture-control/blob/main/LICENSE  
+* It is based on code published by Kazuhito00 on Github: 
+  https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/README_EN.md  
+published under Apache 2.0 licence: 
+  https://github.com/Kazuhito00/hand-gesture-recognition-using-mediapipe/blob/main/LICENSE  
+* It uses hand gestures trained by kinivi, his neural network design and Jupyter notebook from Github: 
+  https://github.com/kinivi/tello-gesture-control published under Apache 2.0 licence: 
+  https://github.com/kinivi/tello-gesture-control/blob/main/LICENSE  
   
 #### Research  
 The initial setup was clarified relatively quickly: The gesture recognition needed to be able to identify hands in 
